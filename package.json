@@ -1,0 +1,14 @@
+{
+  "name": "science-exam-buddy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A small, original Class 4 science revision guide with a local grounded tutor.",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

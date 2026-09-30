@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f8f7f0">
+    <meta name="description" content="A calm Class 4 science exam-revision supplement: six original topic guides, a searchable glossary, gentle practice, and a local grounded Ask Buddy tutor.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <title>Science Exam Buddy · Class 4 revision</title>
+    <link rel="icon" href="./assets/buddy.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#revision-workspace">Skip to revision</a>
+    <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <symbol id="icon-tooth" viewBox="0 0 48 48">
+          <path d="M24 10c-5-6-17-2-15 9 1 7 4 18 8 20 3 1 3-10 7-10s4 11 7 10c4-2 7-13 8-20 2-11-10-15-15-9Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M17 14c3-1 5 0 7 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-shirt" viewBox="0 0 48 48">
+          <path d="m16 9-10 7 6 9 5-3v17h14V22l5 3 6-9-10-7c-1 7-15 7-16 0Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M19 29h10m-10 5h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-matter" viewBox="0 0 48 48">
+          <rect x="6" y="23" width="15" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <path d="M28 13c-6 8-8 11-8 15a9 9 0 0 0 18 0c0-4-3-8-10-15Z" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="37" cy="10" r="3" fill="currentColor"/>
+        </symbol>
+        <symbol id="icon-soil" viewBox="0 0 48 48">
+          <path d="M6 25h36M6 33h36M6 41h36M24 25V13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M23 19C11 19 11 8 12 8c8 0 12 5 11 11Zm2-3C25 5 36 6 36 6c0 8-5 11-11 10Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <circle cx="15" cy="29" r="1.5" fill="currentColor"/><circle cx="30" cy="37" r="1.5" fill="currentColor"/>
+        </symbol>
+        <symbol id="icon-leaf" viewBox="0 0 48 48">
+          <path d="M12 35C-1 12 30 5 39 8c3 25-12 36-27 27Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="m8 42 24-25m-16 17-2-10m9 3 10 1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-cactus" viewBox="0 0 48 48">
+          <path d="M20 41V11a5 5 0 0 1 10 0v30M20 29h-7a6 6 0 0 1-6-6v-7a3 3 0 0 1 6 0v7h7m10 0h6a6 6 0 0 0 6-6v-4a3 3 0 0 0-6 0v4h-6M14 41h22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+      </defs>
+    </svg>
+
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="Science Exam Buddy home">
+          <img src="./assets/buddy.svg" alt="" width="44" height="44">
+          <span>Science <strong>Exam Buddy</strong></span>
+        </a>
+        <span class="level-badge">Class 4 <span aria-hidden="true">·</span> Science</span>
+      </header>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">A little help before the exam</p>
+          <h1 id="page-title">Class 4 science,<br><span>one small step at a time.</span></h1>
+          <p class="hero-description">Read a quick guide, untangle a tricky word, and give a practice question a go. You don’t have to learn it all at once.</p>
+          <div class="hero-actions">
+            <button type="button" class="button button-primary" data-open-tab="chat">Ask Buddy a question <span aria-hidden="true">↗</span></button>
+            <span class="local-badge"><span class="status-dot" aria-hidden="true"></span> Local tutor · no AI service</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <span class="art-star art-star-one">✦</span>
+          <img src="./assets/buddy.svg" alt="" width="126" height="126">
+          <span class="art-star art-star-two">✧</span>
+          <p>Read. Remember.<br>Give it a go.</p>
+        </div>
+      </section>
+
+      <p class="supplement-note"><span aria-hidden="true">✓</span> A revision supplement, not a replacement for your book or your teacher’s notes. They guide your exam wording.</p>
+      <noscript><p class="notice">Please enable JavaScript to use the topic guides, practice, and local tutor. This app does not need an account or an AI service.</p></noscript>
+
+      <div class="app-layout">
+        <aside class="topic-sidebar" aria-label="Topic picker">
+          <div class="sidebar-heading"><h2>Your topics</h2><span>6 guides</span></div>
+          <nav id="chapter-list" aria-label="Choose a science topic"></nav>
+          <div class="sidebar-note">
+            <span class="little-leaf" aria-hidden="true">✦</span>
+            <p><strong>A gentle reminder</strong><br>Try an answer in your own words. Then check your book.</p>
+          </div>
+        </aside>
+
+        <main id="revision-workspace" class="workspace" tabindex="-1">
+          <div class="mobile-chapter-picker">
+            <label for="chapter-select">Choose your revision topic</label>
+            <select id="chapter-select"></select>
+          </div>
+          <header class="topic-header">
+            <div id="chapter-art" class="chapter-art" data-colour="peach"></div>
+            <div>
+              <p id="chapter-number" class="eyebrow">Topic 01 of 06</p>
+              <h2 id="chapter-title">Digestion &amp; microbes</h2>
+              <p id="chapter-intro"></p>
+            </div>
+          </header>
+
+          <div id="revision-tabs" class="revision-tabs" role="tablist" aria-label="Revision sections">
+            <button id="tab-summary" type="button" role="tab" aria-selected="true" aria-controls="panel-summary" tabindex="0" data-tab="summary"><span aria-hidden="true">◷</span> Summary</button>
+            <button id="tab-glossary" type="button" role="tab" aria-selected="false" aria-controls="panel-glossary" tabindex="-1" data-tab="glossary"><span aria-hidden="true">Aa</span> Glossary</button>
+            <button id="tab-practice" type="button" role="tab" aria-selected="false" aria-controls="panel-practice" tabindex="-1" data-tab="practice"><span aria-hidden="true">✓</span> Practice</button>
+            <button id="tab-chat" type="button" role="tab" aria-selected="false" aria-controls="panel-chat" tabindex="-1" data-tab="chat"><span aria-hidden="true">✧</span> Ask Buddy</button>
+          </div>
+
+          <section id="panel-summary" class="revision-panel" role="tabpanel" aria-labelledby="tab-summary" tabindex="0">
+            <div id="summary-content"></div>
+          </section>
+
+          <section id="panel-glossary" class="revision-panel" role="tabpanel" aria-labelledby="tab-glossary" tabindex="0" hidden>
+            <div class="section-heading"><div><p class="eyebrow">Little words, clear meanings</p><h3>Your word helper</h3></div><span class="soft-badge">80 word cards</span></div>
+            <p class="section-description">Search word names and alternate spellings, not the chapter notes. Related words sometimes share a card.</p>
+            <div class="glossary-controls">
+              <div class="form-field search-field"><label for="glossary-search">Find a science word</label><input id="glossary-search" type="search" maxlength="80" placeholder="Try: fiber, food pipe, stomata" autocomplete="off"></div>
+              <div class="form-field"><label for="glossary-scope">Search scope</label><select id="glossary-scope"><option value="chapter">This topic</option><option value="all">All six topics</option></select></div>
+            </div>
+            <p id="glossary-status" class="filter-status" role="status" aria-live="polite"></p>
+            <div id="glossary-results" class="glossary-results" tabindex="0" aria-label="Word cards; scroll for more"></div>
+          </section>
+
+          <section id="panel-practice" class="revision-panel" role="tabpanel" aria-labelledby="tab-practice" tabindex="0" hidden>
+            <div class="section-heading"><div><p class="eyebrow">No timer. No score. Just practice.</p><h3>Give it a go</h3></div><span id="practice-progress" class="soft-badge"></span></div>
+            <p class="section-description">Choose the answer that fits best. A mix-up is a chance to understand why.</p>
+            <div id="mcq-area" class="mcq-area"></div>
+            <div class="short-answer-heading"><h3>Try it in your own words</h3><p>Say the answer aloud or write it on paper. Open a model answer when you are ready.</p></div>
+            <div id="short-answer-list"></div>
+          </section>
+
+          <section id="panel-chat" class="revision-panel chat-panel" role="tabpanel" aria-labelledby="tab-chat" tabindex="0" hidden>
+            <div class="section-heading"><div><p class="eyebrow">A small, honest revision helper</p><h3>Ask Buddy</h3></div><button id="clear-chat" type="button" class="button button-quiet">Clear chat</button></div>
+            <p class="chat-notice">Buddy answers from <strong>this revision guide</strong>, not a generative AI service. It cannot answer everything. No questions are sent to an AI service; chat stays in memory and clears on reload.</p>
+            <div class="starter-heading"><span>Start with a question</span><span id="starter-topic"></span></div>
+            <div id="chat-starters" class="question-chips"></div>
+            <div id="chat-log" class="chat-log" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Your conversation with Buddy" tabindex="0"></div>
+            <form id="chat-form" class="chat-form" novalidate>
+              <label for="chat-input">What would you like to revise?</label>
+              <textarea id="chat-input" name="question" rows="2" maxlength="280" placeholder="Try: Why does a cactus have spines?" aria-describedby="chat-help chat-error" autocomplete="off" spellcheck="true"></textarea>
+              <div class="chat-input-footer"><span id="chat-char-count" aria-hidden="true">0 / 280</span><button type="submit" class="button button-primary">Ask Buddy <span aria-hidden="true">↗</span></button></div>
+              <p id="chat-error" class="form-feedback" role="status" aria-live="polite"></p>
+              <p id="chat-help" class="form-help">English · Up to 280 characters · Please keep names and personal details out. Enter sends; Shift + Enter adds a line.</p>
+            </form>
+            <div class="follow-up-area"><p id="chat-context">After choosing a topic, you can ask:</p><div class="question-chips"><button type="button" class="question-chip" data-question="Tell me more">Tell me more</button><button type="button" class="question-chip" data-question="Give an example">Give an example</button><button type="button" class="question-chip" data-question="Explain it more simply">Explain it more simply</button></div></div>
+            <p class="chat-retention">Only the latest 12 exchanges are shown. No saved history, accounts, or tracking.</p>
+            <p id="chat-status" class="sr-only" role="status" aria-live="polite"></p>
+          </section>
+        </main>
+      </div>
+
+      <footer class="site-footer">
+        <p>Six topic sections. Small steps. Your book and teacher come first.</p>
+        <details class="about-guide">
+          <summary>For grown-ups: scope, privacy &amp; credits</summary>
+          <div>
+            <p>This unofficial supplement covers digestion and microbes, clothes and fibres, matter, soil, green plants, and plant survival. It does not claim to cover the whole book or unsupplied chapters or pages. “Clothes and fibres” is a descriptive topic label.</p>
+            <p>Topic reference: <cite>New Science in Everyday Life</cite>, Oxford University Press, by Vaishali Gupta and Anuradha Gupta, as identified by the family. All explanations, questions, and graphics here are newly created. No textbook scans, illustrations, OCR, or exercises are reproduced. This is not an Oxford University Press product or endorsement.</p>
+            <p>Buddy uses local, curated explanations and word matching, not an external AI model. It may ask for clarification or say a question is outside the guide. The app has no analytics, logins, stored transcripts, or question API. The hosting provider still receives ordinary requests for the website’s files.</p>
+            <p>This is temporary exam revision, not medical advice or an experiment guide. For health worries or activities involving heat, chemicals, or sharp tools, children should ask a trusted adult. Follow the textbook and teacher for exam wording.</p>
+          </div>
+        </details>
+      </footer>
+    </div>
+  </body>
+</html>
