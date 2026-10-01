@@ -1,9 +1,25 @@
 import { broadTopics, chapters, comparisons, DEFAULT_CHAPTER_ID, glossary, knowledge, topicIdsFor } from './content.js';
+import { editDistance, namedTargets, parseWordRequest } from './word-requests.js';
 
 export const MAX_QUESTION_LENGTH = 280;
 const phraseIndex = new Map();
 
+const spellingCorrections = [
+  ['edogenesis', 'pedogenesis'], ['pedogenisis', 'pedogenesis'],
+  ['photosyntesis', 'photosynthesis'], ['clorophyll', 'chlorophyll'], ['chlorophyl', 'chlorophyll'],
+  ['chorophyll', 'chlorophyll'], ['digetion', 'digestion'], ['digistion', 'digestion'],
+  ['oesophogus', 'oesophagus'], ['esophogus', 'oesophagus'],
+  ['condesation', 'condensation'], ['evapouration', 'evaporation'], ['evaportion', 'evaporation'],
+  ['sedimantation', 'sedimentation'], ['sedementation', 'sedimentation'], ['decantion', 'decantation'],
+  ['metamorfosis', 'metamorphosis'], ['metamorphisis', 'metamorphosis'], ['camoflage', 'camouflage'],
+  ['friktion', 'friction'], ['rotaton', 'rotation'], ['revoluton', 'revolution'],
+  ['satelite', 'satellite'], ['galaxi', 'galaxy'], ['filration', 'filtration'],
+  ['roughdge', 'roughage'], ['balanced dite', 'balanced diet'], ['protien', 'protein'],
+  ['urethar', 'urethra'],
+];
+
 const replacements = [
+  ...spellingCorrections,
   ['food pipe', 'oesophagus'], ['foodpipe', 'oesophagus'], ['esophagus', 'oesophagus'],
   ['oesophogus', 'oesophagus'], ['esophogus', 'oesophagus'], ['oesophagu s', 'oesophagus'],
   ['micro organisms', 'microbes'], ['micro organism', 'microbes'],
@@ -185,18 +201,21 @@ for (const prepared of lessonIndex.values()) {
 }
 
 const glossaryIndex = new Map();
+function indexWord(entry, matchedPart, name) {
+  const key = normalizeQuery(name);
+  const matches = glossaryIndex.get(key) || [];
+  if (!matches.some((match) => match.entry.id === entry.id && (match.matchedPart === matchedPart || (!matchedPart && match.matchedPart)))) {
+    matches.push({ entry, matchedPart });
+  }
+  glossaryIndex.set(key, matches);
+}
+
 const glossarySearchIndex = glossary.map((entry) => {
   for (const item of entry.parts) {
-    for (const name of [item.term, ...item.aliases]) {
-      const key = normalizeQuery(name);
-      if (!glossaryIndex.has(key)) glossaryIndex.set(key, { entry, matchedPart: item });
-    }
+    for (const name of [item.term, ...item.aliases]) indexWord(entry, item, name);
   }
-  const names = [entry.term, ...entry.aliases];
-  for (const name of names) {
-    const key = normalizeQuery(name);
-    if (!glossaryIndex.has(key)) glossaryIndex.set(key, { entry, matchedPart: null });
-  }
+  const names = [entry.term, entry.term.replace(/&/g, 'and'), ...entry.aliases];
+  for (const name of names) indexWord(entry, null, name);
   return { entry, names: [...names, ...entry.parts.flatMap((item) => [item.term, ...item.aliases])].map(normalizeQuery) };
 });
 
@@ -293,7 +312,7 @@ export function validateQuestion(value) {
   if (value.trim().length > MAX_QUESTION_LENGTH) {
     return { valid: false, message: `That is a little long. Please use ${MAX_QUESTION_LENGTH} characters or fewer.` };
   }
-  if (value.trim().length < 2 || !/[a-z]/i.test(value)) {
+  if ((value.trim().length < 2 && !/^[gl]$/i.test(value.trim())) || !/[a-z]/i.test(value)) {
     return { valid: false, message: 'Try a word like “soil”, or a short science question using letters.' };
   }
   return { valid: true, value: value.trim() };
@@ -325,7 +344,8 @@ function clarification(ids, message = 'That could mean a few things. Which one w
 
 function lessonAnswer(id, mode = 'answer') {
   const item = lessonIndex.get(id).item;
-  const text = mode === 'more' ? item.more : mode === 'example' ? item.example : mode === 'simple' ? item.simple : item.answer;
+  const explanation = mode === 'more' ? item.more : mode === 'simple' ? item.simple : item.answer;
+  const text = mode === 'example' ? item.example : `${explanation}\n\nExample: ${item.example}`;
   const title = mode === 'more' ? `A little more: ${item.title}` : mode === 'example' ? `An example: ${item.title}` : mode === 'simple' ? `Simply: ${item.title}` : item.title;
   return result('answer', title, text, topicIdsFor(item), { type: 'lesson', id });
 }
@@ -333,10 +353,14 @@ function lessonAnswer(id, mode = 'answer') {
 function glossaryAnswer(entry, matchedPart, mode = 'answer') {
   const definition = matchedPart?.definition || entry.definition;
   const term = matchedPart?.term || entry.term;
-  let text = definition;
-  if (mode === 'more') text = `${definition}\n\n${matchedPart ? `${entry.definition}\n\n` : ''}Everyday connection: ${entry.example}`;
-  if (mode === 'example') text = `${entry.example}\n\nRemember: ${definition}`;
-  if (mode === 'simple') text = matchedPart?.definition || entry.simple || easyMeanings[entry.id];
+  const example = matchedPart?.example || entry.example;
+  let text = `${definition}\n\nExample: ${example}`;
+  if (mode === 'more') text = `${definition}\n\n${matchedPart ? `${entry.definition}\n\n` : ''}Example: ${example}`;
+  if (mode === 'example') text = `${example}\n\nRemember: ${definition}`;
+  if (mode === 'simple') {
+    const simple = matchedPart?.simple || matchedPart?.definition || entry.simple || easyMeanings[entry.id] || definition;
+    text = `${simple}\n\nExample: ${example}`;
+  }
   return result('answer', term, text, topicIdsFor(entry), {
     type: 'glossary',
     id: entry.id,
@@ -356,6 +380,7 @@ const healthPhrases = [
   'draw blood', 'take blood', 'blood sample at home', 'inject', 'injection',
   'treat my', 'treat me', 'treat myself',
   'underweight', 'overweight', 'weight loss', 'lose weight', 'too fat',
+  'surgery', 'operate on',
 ];
 const hazards = [
   'iodine', 'mothball', 'mothballs', 'alcohol', 'spirit', 'bleach', 'knife', 'knives',
@@ -366,7 +391,9 @@ const hazards = [
 const heatActions = ['heat', 'heating', 'boil', 'boiling', 'burn', 'burning', 'cut', 'cutting'];
 const actionRequests = ['how', 'steps', 'experiment', 'try', 'can i', 'should i', 'do i', 'at home', 'make', 'test', 'use'];
 
-function safetyReply(query) {
+function safetyReply(query, knownConcept = false) {
+  // Curated neutral concepts can be explained without giving any procedure.
+  if (knownConcept) return null;
   const waterContext = hasPhrase(query, 'water') || hasPhrase(query, 'chlorination');
   if (healthPhrases.some((phrase) => hasPhrase(query, phrase)
     && !(waterContext && ['treat', 'treatment'].includes(phrase)))) {
@@ -374,7 +401,6 @@ function safetyReply(query) {
       'Please tell a trusted adult now about pain, illness, injury, medicine, or anything you may have swallowed. They can contact a doctor, dentist, poison service, or local emergency service if needed. Do not taste unknown substances or take medicine by yourself. I can explain revision topics, but I cannot diagnose or suggest treatment.');
   }
   const hazardous = hazards.some((phrase) => hasPhrase(query, phrase)) || hasPhrase(query, 'test starch');
-  const safeConcept = ['Is the Sun a ball of fire?', 'What is iodine in food?'].some((question) => query === normalizeQuery(question));
   const activityFraming = ['steps', 'experiment', 'try', 'at home', 'can i', 'should i', 'do i', 'how to', 'how do i', 'how can i', 'how do we', 'how can we'];
   const unsafeActivity = heatActions.some((phrase) => hasPhrase(query, phrase))
     && actionRequests.some((phrase) => hasPhrase(query, phrase))
@@ -386,7 +412,7 @@ function safetyReply(query) {
   const unsafeObservation = ['look directly at the sun', 'look at the sun', 'look at sun', 'binoculars', 'use a telescope', 'catch a snake', 'touch a snake', 'feed wild animals', 'capture wild animals', 'how do i hunt', 'how to hunt', 'make an electrical circuit'].some((phrase) => hasPhrase(query, phrase));
   const unsafeChemicals = ['chlorine', 'chlorination'].some((phrase) => hasPhrase(query, phrase))
     && ['can i', 'how do i', 'how to', 'steps', 'experiment', 'add', 'dose', 'use at home'].some((phrase) => hasPhrase(query, phrase));
-  if ((hazardous && !safeConcept) || unsafeActivity || unsafeFood || unsafeCooking || unsafeObservation || unsafeChemicals) {
+  if (hazardous || unsafeActivity || unsafeFood || unsafeCooking || unsafeObservation || unsafeChemicals) {
     return result('safety', 'Let’s keep revision safe',
       'I cannot give steps for unsafe activities with heat, sharp tools, chemicals, electricity, or wildlife. Ask a teacher or trusted adult instead. Never taste unknown mixtures or mouldy food, or look directly at the Sun. A starch test belongs with a trained adult. We can revise the idea safely using explanations and drawings.',
       [], null, suggestions(['melting-freezing', 'plant-storage', 'filter-limits']));
@@ -416,17 +442,68 @@ function contextAnswer(context, mode) {
   return null;
 }
 
-function termRequest(query) {
-  const meaning = query.match(/^what (?:does|do) (.+) mean$/);
-  if (meaning) return meaning[1].replace(/^(?:a|an|the) /, '');
-  return query
-    .replace(/^(?:what is|what are|meaning of|define|explain|tell me about|tell me more about|give an example of|give me an example of) /, '')
-    .replace(/^(?:a|an|the) /, '')
-    .replace(/ (?:please|more simply|in simple words|simply)$/, '');
+function findWords(target) {
+  return glossaryIndex.get(target) || [];
 }
 
-function findWord(query) {
-  return glossaryIndex.get(termRequest(query)) || null;
+function wordQuestion(match) {
+  const names = match.matchedPart ? [match.matchedPart.term, ...match.matchedPart.aliases, match.entry.term] : [match.entry.term];
+  const name = names.find((item) => {
+    const key = normalizeQuery(item);
+    if (ambiguousWords[key]) return false;
+    const matches = findWords(key);
+    return matches.length === 1 && matches[0].entry.id === match.entry.id;
+  }) || match.entry.term;
+  return { label: name, question: `Explain ${name}` };
+}
+
+function clarifyWords(matches, message, context = null) {
+  const unique = [...new Map(matches.map((match) => [`${match.entry.id}:${match.matchedPart?.term || ''}`, match])).values()].slice(0, 4);
+  return result('clarify', 'Let’s choose the meaning', message, unique.flatMap((match) => topicIdsFor(match.entry)), context, unique.map(wordQuestion));
+}
+
+function spellingSuggestions(target) {
+  if (!/^[a-z]{6,24}$/.test(target)) return [];
+  const candidates = [...glossaryIndex.entries()].filter(([name]) =>
+    /^[a-z]{6,24}$/.test(name) && name[0] === target[0] && Math.abs(name.length - target.length) <= 2);
+  const close = candidates.map(([name, matches]) => ({ name, matches, distance: editDistance(target, name) }))
+    .filter((item) => item.distance <= (target.length >= 9 ? 2 : 1) && 1 - item.distance / Math.max(target.length, item.name.length) >= 0.82)
+    .sort((a, b) => a.distance - b.distance);
+  if (!close.length) return [];
+  return close.filter((item) => item.distance === close[0].distance).slice(0, 3).flatMap((item) => item.matches);
+}
+
+function relatedWords(query) {
+  const names = [...glossaryIndex.keys()].filter((name) => name.length >= 4 && hasPhrase(query, name))
+    .sort((a, b) => b.length - a.length);
+  const matches = [];
+  const included = [];
+  for (const name of names) {
+    if (included.some((other) => hasPhrase(other, name))) continue;
+    included.push(name);
+    const ambiguous = ambiguousWords[name];
+    matches.push(...(ambiguous ? ambiguous.names.flatMap((item) => findWords(normalizeQuery(item))) : findWords(name)));
+  }
+  return [...new Map(matches.map((match) => [`${match.entry.id}:${match.matchedPart?.term || ''}`, match])).values()].slice(0, 3);
+}
+
+const ambiguousWords = {
+  root: { names: ['tooth root', 'plant root'], message: 'Do you mean a tooth’s root, or a plant’s roots?' },
+  vein: { names: ['leaf vein', 'blood vein'], message: 'Do you mean a leaf pathway, or a blood vessel?' },
+  pulp: { names: ['tooth pulp', 'paper pulp'], message: 'Do you mean the inside of a tooth, or fibres used for paper?' },
+  fibre: { names: ['dietary fibre', 'clothing fibre'], message: 'Do you mean fibre in food, or strands used for clothing?' },
+  mineral: { names: ['minerals in food', 'humus and minerals'], message: 'Do you mean mineral nutrients in food, or minerals in rocks and soil?' },
+  gum: { names: ['gums', 'plant gum'], message: 'Do you mean tissue around teeth, or the sticky substance from some plants?' },
+  decay: { names: ['decomposition', 'tooth decay'], message: 'Do you mean dead material breaking down, or damage to a tooth?' },
+};
+
+function withSpellingNote(reply, value) {
+  if (reply.kind !== 'answer') return reply;
+  const plain = ` ${plainWords(value)} `;
+  const correction = spellingCorrections.find(([from]) => plain.includes(` ${from} `));
+  if (!correction) return reply;
+  return { ...reply, correction: { from: correction[0], to: correction[1] },
+    text: `Did you mean "${correction[1]}"? Here is that word.\n\n${reply.text}` };
 }
 
 function evidenceFor(prepared, queryTerms, query) {
@@ -434,7 +511,7 @@ function evidenceFor(prepared, queryTerms, query) {
   if (!subjectMatches.length || !queryTerms.length) return null;
   const supported = queryTerms.filter((token) => prepared.vocabulary.has(token));
   const coverage = supported.length / queryTerms.length;
-  if (coverage < 0.78) return null;
+  if (coverage < 1) return null;
   const similarity = Math.max(...prepared.questions.map((question) => {
     const known = terms(question);
     const intersection = queryTerms.filter((token) => known.includes(token)).length;
@@ -451,9 +528,16 @@ export function getReply(value, context = null, selectedChapterId = DEFAULT_CHAP
   const validated = validateQuestion(value);
   if (!validated.valid) return result('invalid', 'A small nudge', validated.message);
   const query = normalizeQuery(validated.value);
-  const safe = safetyReply(query);
+  const request = parseWordRequest(query);
+  const matches = findWords(request.target);
+  const named = namedTargets(request.target);
+  const namedMatches = named.map(findWords);
+  const knownPair = named.length > 0 && namedMatches.every((items) => items.length > 0);
+  const exact = questionIndex.get(query);
+  const safe = safetyReply(query, Boolean(exact) || matches.length > 0 || Boolean(ambiguousWords[request.target]) || knownPair);
   if (safe) return safe;
   const lastContext = contextAnswer(context, 'answer')?.context || null;
+  const answer = (reply) => withSpellingNote(reply, validated.value);
 
   if (['hi', 'hello', 'hey', 'hi buddy', 'hello buddy', 'good morning', 'good evening', 'how are you'].includes(query)) {
     return result('greeting', 'Hello, revision explorer!',
@@ -473,47 +557,36 @@ export function getReply(value, context = null, selectedChapterId = DEFAULT_CHAP
   }
 
   const broad = broadTopicIndex.get(query);
-  if (broad) return clarification(broad.lessonIds, undefined, lastContext);
-  const requestedTerm = termRequest(query);
-  if (requestedTerm === 'root') {
-    return clarification(['tooth-layers', 'photosynthesis', 'soil-protection'], 'Do you mean a tooth’s root, or a plant’s roots? Choose the idea you want.', lastContext);
-  }
-  if (requestedTerm === 'vein') {
-    return clarification(['leaf-parts', 'blood-vessels'], '“Vein” can mean a leaf pathway or a blood vessel. Which meaning do you want?', lastContext);
-  }
-  if (requestedTerm === 'pulp') {
-    return clarification(['tooth-layers', 'earth-care-actions'], 'Do you mean the inside of a tooth, or the plant-fibre mixture used for paper?', lastContext);
-  }
-  if (requestedTerm === 'fibre') {
-    return clarification(['food-fibre-water', 'fibre-sources'], 'Do you mean dietary fibre in food, or the fibres used for clothing?', lastContext);
-  }
-  if (requestedTerm === 'mineral') {
-    return clarification(['food-vitamins-minerals', 'soil-formation'], 'Do you mean mineral nutrients in food, or minerals in rocks and soil?', lastContext);
+  if (broad && (!matches.length || request.framed)) return clarification(broad.lessonIds, undefined, lastContext);
+  const ambiguous = ambiguousWords[request.target];
+  if (ambiguous) {
+    return clarifyWords(ambiguous.names.flatMap((name) => findWords(normalizeQuery(name))), ambiguous.message, lastContext);
   }
 
-  const mode = requestedMode(query);
-  const exact = questionIndex.get(query);
-  if (exact) return lessonAnswer(exact.item.id, mode);
+  const mode = request.mode === 'answer' ? requestedMode(query) : request.mode;
+  if (exact) return answer(lessonAnswer(exact.item.id, mode));
 
-  const queryTerms = terms(query);
+  const queryTerms = terms(request.framed ? request.target : query);
   const wantsComparison = ['difference', 'compare', 'versus', 'vs', 'different'].some((phrase) => hasPhrase(query, phrase));
-  if (!wantsComparison) {
-    const match = findWord(query);
-    if (match) {
-      if (mode !== 'answer' && !match.matchedPart && lessonIndex.has(match.entry.id)) return lessonAnswer(match.entry.id, mode);
-      return glossaryAnswer(match.entry, match.matchedPart, mode);
+  if (!wantsComparison && matches.length) {
+    if (matches.length > 1) return clarifyWords(matches, 'That word has more than one meaning here. Which one do you want?', lastContext);
+    const match = matches[0];
+    if (mode !== 'answer' && !match.matchedPart && lessonIndex.has(match.entry.id)) {
+      return answer(lessonAnswer(match.entry.id, mode));
     }
+    return answer(glossaryAnswer(match.entry, match.matchedPart, mode));
   }
   const comparison = comparisons.find((item) => {
     const prepared = lessonIndex.get(item.lessonId);
-    return item.groups.every((group) => group.some((phrase) => hasPhrase(query, phrase)))
-      && queryTerms.length && queryTerms.filter((token) => prepared.vocabulary.has(token)).length / queryTerms.length >= 0.78;
+    return item.groups.every((group) => group.some((phrase) => hasPhrase(request.target, phrase)))
+      && queryTerms.length && queryTerms.every((token) => prepared.vocabulary.has(token));
   });
   if (comparison) {
-    return lessonAnswer(comparison.lessonId, mode);
+    return answer(lessonAnswer(comparison.lessonId, mode));
   }
+  if (knownPair) return clarifyWords(namedMatches.flat(), 'I can explain these words separately. Choose a meaning so I do not mix them up.', lastContext);
   const candidates = [...lessonIndex.values()]
-    .map((prepared) => evidenceFor(prepared, queryTerms, query))
+    .map((prepared) => evidenceFor(prepared, queryTerms, request.framed ? request.target : query))
     .filter(Boolean).sort((a, b) => b.score - a.score);
   if (candidates.length) {
     const top = candidates[0];
@@ -522,19 +595,30 @@ export function getReply(value, context = null, selectedChapterId = DEFAULT_CHAP
       return clarification(close.length > 1 ? close.map((item) => item.id) : candidates.map((item) => item.id),
         'I can help with these guide questions, but I am not sure which explanation fits yours. Choose one so I do not guess.', lastContext);
     }
-    return lessonAnswer(top.id, mode);
+    return answer(lessonAnswer(top.id, mode));
   }
-  return result('unknown', 'That is outside this little guide',
-    'I do not have a reliable answer for that in this revision guide. I cover only the supplied science topics shown here, and I will not make up an answer. Check your textbook or ask a teacher or trusted adult. You can try one of these on-topic questions instead.',
-    [], lastContext, suggestions(selectedStarters(selectedChapterId)));
+  const closeWords = spellingSuggestions(request.target);
+  if (closeWords.length) {
+    return clarifyWords(closeWords, 'I could not match that spelling. Did you mean one of these words?', lastContext);
+  }
+  const wordChoices = relatedWords(query).map(wordQuestion);
+  const choices = [...wordChoices, ...suggestions(selectedStarters(selectedChapterId))].slice(0, 4);
+  return result('unknown', 'Let’s try that wording again',
+    'I could not match that word or question yet. Try the science word on its own, ask what it means, or choose a question below. I only use this small local guide, so I will not guess.',
+    [], lastContext, choices);
 }
 
 export function searchGlossary(value, chapterId = null) {
   const query = normalizeQuery(value);
+  const wanted = query.split(' ');
   return glossarySearchIndex.filter(({ entry, names }) => {
     if (chapterId && !topicIdsFor(entry).includes(chapterId)) return false;
     if (!query) return true;
-    return names.some((name) => name.includes(query));
+    return names.some((name) => {
+      const words = name.split(' ');
+      return words.some((_, start) => wanted.every((token, offset) =>
+        offset === wanted.length - 1 ? words[start + offset]?.startsWith(token) : words[start + offset] === token));
+    });
   }).map(({ entry }) => entry).sort((a, b) => a.term.localeCompare(b.term, 'en'));
 }
 

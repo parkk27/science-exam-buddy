@@ -628,7 +628,7 @@ export const additionalKnowledge = [
   lesson('young-stage-names', 'young-animals', 'What do the young-stage names mean?',
     ['What do maggot and nymph mean?', 'What is a larva?', 'What is frogspawn?', 'What is an embryo?'],
     ['maggot', 'nymph', 'larva', 'spawn', 'embryo'],
-    'A maggot is a fly larva. A nymph is a young stage of an insect such as a cockroach that resembles a smaller adult. Frogspawn is a cluster of frog eggs. An embryo is an early developing living thing before hatching or birth. These are not all names for the same stage.',
+    'A larva is a young stage that differs from the adult, such as a butterfly caterpillar. A maggot is a fly larva; a nymph is a young insect resembling a smaller adult. Frogspawn is a cluster of eggs. An embryo is an early developing living thing. These words name different stages.',
     'Maggot: fly larva. Nymph: young insect resembling its adult. Spawn: eggs. Embryo: developing young.',
     'A caterpillar is the larva of a butterfly or moth. Learning which animal and stage a word belongs to is more helpful than treating every young animal as a “baby” with the same body.',
     'A cockroach nymph looks more like its adult than a butterfly caterpillar looks like a butterfly.',

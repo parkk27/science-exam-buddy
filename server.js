@@ -4,7 +4,7 @@ import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const publicFiles = new Set(['index.html', 'styles.css', 'app.js', 'content.js', 'content-helpers.js', 'extra-content.js', 'food-content.js', 'tutor.js', 'dom.js', 'assets/buddy.svg']);
+const publicFiles = new Set(['index.html', 'styles.css', 'app.js', 'content.js', 'content-helpers.js', 'extra-content.js', 'food-content.js', 'vocabulary.js', 'word-requests.js', 'tutor.js', 'dom.js', 'assets/buddy.svg']);
 const mimeTypes = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml' };
 
 export function createAppServer() {

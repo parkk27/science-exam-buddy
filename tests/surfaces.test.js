@@ -23,7 +23,7 @@ test('all topic icons and dynamic count anchors exist, without stale scope copy'
 });
 
 test('browser modules have no question networking, persistent storage, or dynamic HTML', async () => {
-  for (const file of ['app.js', 'dom.js', 'tutor.js', 'content.js', 'extra-content.js', 'food-content.js', 'content-helpers.js']) {
+  for (const file of ['app.js', 'dom.js', 'tutor.js', 'content.js', 'extra-content.js', 'food-content.js', 'content-helpers.js', 'vocabulary.js', 'word-requests.js']) {
     const code = await readFile(new URL(`../${file}`, import.meta.url), 'utf8');
     assert.doesNotMatch(code, /\b(?:fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB)\b|document\.cookie|\.innerHTML/, file);
   }
@@ -31,15 +31,18 @@ test('browser modules have no question networking, persistent storage, or dynami
   assert.doesNotMatch(tutor, /(?:phraseIndex|questionIndex|glossaryIndex)\.set\(\s*(?:query|value|validated\.value)/);
 });
 
-test('README totals and current scoped personal-copy authorization are explicit', async () => {
+test('README totals and sole personal canonical ownership are explicit', async () => {
   const readme = await readFile(new URL('../README.md', import.meta.url), 'utf8');
-  for (const phrase of ['14 supplied topic guides', '198 unique glossary cards', '84 MCQs and 56 short-answer prompts', '105 curated explanations and 443 question phrasings']) {
+  for (const phrase of ['14 supplied topic guides', '237 unique glossary cards', '84 MCQs and 56 short-answer prompts', '106 curated explanations and 447 question phrasings']) {
     assert.ok(readme.includes(phrase), phrase);
   }
-  assert.match(readme, /explicitly authorized one completed, validated 14-topic/);
-  assert.match(readme, /does \*\*not\*\* authorize automatic future synchronization/);
-  assert.match(readme, /publication coordinator owns the exact personal copy/);
-  assert.match(readme, /must remain private/);
+  assert.match(readme, /\*\*Sole maintained codebase:\*\* \[parkk27\/science-exam-buddy\]\(https:\/\/github\.com\/parkk27\/science-exam-buddy\)/);
+  assert.match(readme, /\*\*canonical development\s+repository\*\*/);
+  assert.match(readme, /All future implementation, reviews, commits, and pushes\s+belong here, using the personal `parkk27` account/);
+  assert.match(readme, /\*\*Frozen historical code:\*\* `kunalparekh_microsoft\/science-exam-buddy`/);
+  assert.match(readme, /Do not write or synchronize changes back to it/);
+  assert.match(readme, /does not authorize new Pages configuration/);
+  assert.doesNotMatch(readme, /Private Microsoft primary|Historical personal hosting mirror|private development only|must stay in the private Microsoft|NEW explicit user confirmation authorizes a personal copy|No transfer is authorized for the current vocabulary correction/);
 });
 
 test('the supplied eight-line historical changelog is preserved without a new hosting claim', async () => {

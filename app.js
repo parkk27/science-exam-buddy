@@ -128,8 +128,8 @@ function renderGlossary() {
   results.scrollTop = 0;
   if (!matches.length) {
     const empty = element('div', { className: 'empty-state' },
-      element('h4', { text: 'No word cards here yet' }),
-      element('p', { text: allTopics ? 'Try another spelling, a shorter word, or clear your search. This guide covers only the supplied topics listed.' : `Try another spelling, clear the search, or look across all ${stats.topics} topics.` }));
+      element('h4', { text: 'Let’s try that search again' }),
+      element('p', { text: allTopics ? 'I could not match that spelling. Try a shorter word, clear the search, or ask Buddy to help with the word.' : `Try another spelling, clear the search, or look across all ${stats.topics} topics.` }));
     if (!allTopics) {
       const button = element('button', { type: 'button', className: 'button', text: `Search all ${stats.topics} topics` });
       button.addEventListener('click', () => { byId('glossary-scope').value = 'all'; renderGlossary(); });

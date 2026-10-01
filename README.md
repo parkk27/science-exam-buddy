@@ -30,7 +30,7 @@ visual learning sequences, suggested questions, **6 original MCQs** with
 explanations, and **4 short-answer prompts** with model answers hidden until
 requested. That is **84 MCQs and 56 short-answer prompts**.
 
-The **198 unique glossary cards** cover the reviewed concepts. Related words
+The **237 unique glossary cards** cover the reviewed concepts. Related words
 share some cards and have individually explained meanings that can be opened
 on request. A shared card can appear in several relevant topic scopes without
 being duplicated in the global list. Scope and counts are derived from the
@@ -79,14 +79,18 @@ npm test
 
 This uses the built-in `node --test` runner. It checks exact totals and all
 14 topic shapes and Food-first defaults, shared glossary scope counts, concept
-coverage, unique IDs and questions, correct MCQ answer indices, valid source references, all 443
+coverage, unique IDs and questions, correct MCQ answer indices, valid source references, all 447
 curated tutor phrasings, every declared comparison, and every glossary-card
 question and follow-up. It also checks aliases and misspellings,
 cross-topic answers, context follow-ups, ambiguity, unknown
 questions (including **brain not matching rain**), health and activity safety,
 input limits, text-only chat rendering, root/subpath serving of every imported
 module, dynamic count/icon surfaces, and absence of browser networking or
-storage code.
+storage code. An independently authored source-review corpus lists **505
+term/topic records** across all 14 guides and checks **5,814 child-style
+questions**, rather than only iterating the implementation's own glossary.
+It includes fact boxes, Word Help, and diagram labels, so a missing term such
+as pedogenesis fails coverage.
 
 For a manual smoke check, visit both local URLs. Choose another topic, search
 `dietary fiber` in **All 14 topics**, open the related meanings for `ureter`, try a wrong
@@ -98,18 +102,32 @@ model, then ask `Why do we need food?`, `What makes a diet balanced?`,
 and **Clear chat**. No external resource or question request should appear in
 the network log.
 
+Also try `pedogenesis`, `edogenesis`, `What is meant by pedogenesis?`,
+`can you explain photosynthesis for me?`, and `I do not understand metamorphosis`.
+Neutral definitions such as `What is iodine?` must give the concept safely,
+while requests such as `How do I heat a leaf in spirit?` must not give steps.
+
 ## What Ask Buddy can and cannot do
 
 Buddy is an **honest local grounded tutor, not a generative AI service**. It
-answers from **105 curated explanations and 443 question phrasings**, plus the
+answers from **106 curated explanations and 447 question phrasings**, plus the
 original glossary. Matching uses
-declared aliases, curated question and intent phrases, whole-word boundaries,
-and a confidence threshold. It does not merely return the currently selected
+declared aliases, bounded child-question wording, curated intent phrases,
+whole-word boundaries, and conservative confidence. It does not merely return the currently selected
 topic's summary.
 
 - It explains words and common what/why/how/difference/example questions.
-- It labels the source topic and offers choices when a request is broad or
-  uncertain. Unknown or out-of-scope questions get an explicit limitation.
+- It labels the source topic, gives an everyday example, and offers choices
+  when a word has more than one meaning or a request is broad.
+- `What is meant by X?`, `Explain X in easy words`, `Can you tell me about X
+  please?`, and `I do not understand X` work as bounded term requests. Unrelated
+  extra words are not discarded to force a match.
+- Declared child typos, including `edogenesis` and `pedogenisis`, visibly offer
+  the correct spelling **pedogenesis** with the explanation. Other close
+  spellings can offer in-app choices instead of silently guessing.
+- A real unmatched question says **"I could not match that word or question
+  yet"** and invites rephrasing or a choice inside the app. A matching failure
+  does not establish that a term is outside a child's syllabus.
 - `Tell me more`, `Give an example`, and `Explain it more simply` use the last
   matched explanation, even if the topic picker has since changed. Without a
   matched topic, Buddy asks the child to choose one.
@@ -126,8 +144,9 @@ not repeatedly process the whole dictionary on each keystroke. These indexes
 contain only authored guide material, never user questions or saved chat.
 Water-treatment explanations do not give boiling, chemical, or dosage steps.
 Sun, electrical, invasive medical, and wildlife activity requests are guarded
-too. Benign conceptual questions about the Sun or a named mineral in food are
-not confused with fire or chemical experiments. Food guidance is general
+too. Neutral, matched chapter vocabulary about chemicals, illness, or tools
+can be explained with adult-safety notes; this is different from a request for
+diagnosis, medicine, or a hazardous procedure. Food guidance is general
 revision, not a personal meal plan, weight-change prescription, supplement
 recommendation, or cooking/preservation procedure.
 
@@ -182,44 +201,50 @@ mechanical work versus energy, Sun/stars versus ordinary fire, galaxies versus
 constellations, and tilt plus revolution versus Sun distance for seasons.
 Conservation categories are not treated as unchanging facts.
 
-## Current authorization: the completed Food-first personal copy
+The vocabulary audit also restores source-backed words including pedogenesis,
+gravel, nerve, handloom, botanist, saturated, and the historical soil words
+Urvara and Usara. Weathering is one part of soil development; erosion is
+removal, not another name for pedogenesis. Named examples such as yeast,
+cotton, Pluto, and Orion have their own meanings instead of returning only
+a broad category.
 
-**Private Microsoft primary code:** `kunalparekh_microsoft/science-exam-buddy`.
-This repository owns implementation and must remain private. Develop and retain
-the expanded revision on the private Microsoft feature branch using Microsoft
-credentials. Do not automatically merge it into another branch or repository.
+## Canonical development repository
 
-**Historical personal hosting mirror:** `parkk27/science-exam-buddy`.
-The user has now **explicitly authorized one completed, validated 14-topic
-Food-first copy**, including the prior 13-topic expansion, into this personal
-repository. The implementation session writes only to the private Microsoft
-feature branch; the publication coordinator owns the exact personal copy of
-the final ready commit.
+**Sole maintained codebase:** [parkk27/science-exam-buddy](https://github.com/parkk27/science-exam-buddy).
+The user has designated this personal repository as the **canonical development
+repository** for the original app and its changes, including the completed
+vocabulary correction. All future implementation, reviews, commits, and pushes
+belong here, using the personal `parkk27` account. Preserve existing work and
+remote history; never overwrite concurrent changes or force-push.
 
-This approval does **not** authorize automatic future synchronization, new
-Pages publishing, Lovable/Replit or other external hosting actions, or changes
-to the private repository's visibility. Later changes or deployment actions
-need their own explicit approval.
+**Frozen historical code:** `kunalparekh_microsoft/science-exam-buddy`.
+The Microsoft repository is retained for its existing history only, not as an
+active development target. Do not write or synchronize changes back to it.
+Do not delete or archive either repository, or change repository visibility,
+without separate explicit user approval.
+
+The approved frozen vocabulary correction was imported without changing its
+educational app files. Only this ownership documentation and its policy tests
+intentionally differ from the historical source. The supplied historical
+`CHANGELOG.md` is preserved exactly; it describes an earlier presentation, not
+evidence of current live hosting or a Replit action in this update.
+
+This ownership change does not authorize new Pages configuration, external
+hosting, or connections to AI, OCR, Lovable, Replit, or other external services.
+Deployment actions need their own explicit approval. Existing hosting hooks
+may react to a code push; report an observed automatic deployment accurately
+rather than assuming that saving code cannot trigger one.
 
 The historical target <https://parkk27.github.io/science-exam-buddy/> does not
-imply that this Food-first revision is published there. Existing personal work
-and remote history must not be overwritten or force-pushed. The supplied
-historical `CHANGELOG.md` is preserved exactly for source/mirror alignment; it
-describes an earlier presentation, not evidence of current live hosting or a
-Replit action in this update.
-
-No Microsoft-managed account is being used to create a public Microsoft repo.
-Do not modify another application or copy any source scans into either repo.
+imply that this revision is published there. Do not modify another application
+or copy source scans, OCR, attachment metadata, credentials, or child details
+into the repository.
 
 The app is ordinary static HTML, CSS, and ES modules. All app assets and imports
-are relative, and `.nojekyll` is included. If separately approved later, a
-static hosting mirror can serve
-**`main` / `(root)`** with no build or dependency installation. No workflow,
-custom domain, or secret is required. Keep the mirror app and README identical
-to the final ready private commit; the authorized coordinator should transfer
-only that exact commit's tracked files with a non-force concurrency check.
-`.gitattributes` keeps text line endings consistently LF for an exact mirror
-from Windows checkouts.
+are relative, and `.nojekyll` is included. If separately approved later,
+GitHub Pages can serve this repository's **`main` / `(root)`** with no build or
+dependency installation. No workflow, custom domain, or secret is required.
+`.gitattributes` keeps text line endings consistently LF in Windows checkouts.
 
 Main app files:
 
@@ -227,8 +252,9 @@ Main app files:
 | --- | --- |
 | `index.html`, `styles.css` | Accessible shell, responsive layout, original icon drawings |
 | `content.js`, `extra-content.js`, `food-content.js` | Food-first guides, shared glossary, practice, tutor material, and dynamic counts |
+| `vocabulary.js` | Source-reviewed additions and distinct meanings, including safe concept definitions |
 | `content-helpers.js` | Shared data constructors, without duplicated content-building logic |
-| `tutor.js` | Local matching, clarification, follow-ups, search, input and safety guards |
+| `tutor.js`, `word-requests.js` | Bounded wording, matching, visible spelling help, clarification, follow-ups, search, and safety |
 | `dom.js`, `app.js` | Text-safe rendering and in-memory interaction |
 | `assets\buddy.svg` | Original book-and-leaf graphic and favicon |
 | `server.js` | Dependency-free local static preview, not a production backend |
@@ -237,17 +263,18 @@ Main app files:
 ## Retire the site after the exam
 
 There is **no automatic expiry**, because no exam date was supplied.
-Do not automatically delete either repository.
+Do not automatically delete this repository or the historical Microsoft repository.
 
-When the family is finished, an authorized owner of the **public mirror** can
-open **GitHub repository Settings > Pages > Unpublish site**. Alternatively,
-with the correct authenticated public-hosting account and explicit approval:
+If GitHub Pages is enabled later, an authorized owner of the **personal
+repository** can retire the site through **GitHub repository Settings > Pages >
+Unpublish site**. Alternatively, with the correct authenticated personal account
+and explicit approval:
 
 ```powershell
 gh api --method DELETE repos/parkk27/science-exam-buddy/pages
 ```
 
 This removes the Pages site, **not either repository or its Git history**.
-Retain the private primary and public mirror unless the owner separately asks
-for deletion. Do not re-enable Pages or republish on a later push unless asked.
+Retain the personal codebase and frozen historical repository unless the owner
+separately asks for deletion. Do not re-enable Pages or republish on a later push unless asked.
 Verify the public address no longer serves the app after unpublishing.

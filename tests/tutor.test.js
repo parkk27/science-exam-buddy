@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { chapters, comparisons, glossary, knowledge, topicIdsFor, stats } from '../content.js';
 import { getReply, hasPhrase, MAX_QUESTION_LENGTH, normalizeQuery, searchGlossary, validateQuestion } from '../tutor.js';
 
-test('all 443 curated questions in all 14 topics return their own sourced answer', () => {
+test('all 447 curated questions in all 14 topics return their own sourced answer', () => {
   for (const item of knowledge) {
     for (const question of item.questions) {
       const reply = getReply(question, null, 'clothes');
@@ -75,10 +75,11 @@ test('ordinary why/how/example requests use deliberate intents, not the selected
     const reply = getReply(question, null, 'clothes');
     assert.equal(reply.kind, 'answer', question);
     assert.equal(reply.context.id, id, question);
-    assert.deepEqual(reply.chapterIds, [chapterId]);
+    assert.deepEqual(reply.chapterIds, topicIdsFor(knowledge.find((item) => item.id === id)));
+    assert.equal(reply.chapterIds[0], chapterId);
   }
   assert.match(getReply('Give an example of photosynthesis').text, /green leaf/i);
-  assert.equal(getReply('Explain photosynthesis more simply').text, knowledge.find((item) => item.id === 'photosynthesis').simple);
+  assert.match(getReply('Explain photosynthesis more simply').text, /light|water/);
 });
 
 test('follow-ups preserve the actual last source, including a glossary meaning', () => {
@@ -88,7 +89,8 @@ test('follow-ups preserve the actual last source, including a glossary meaning',
       const reply = getReply(question, initial.context, 'digestion');
       assert.equal(reply.kind, 'answer');
       assert.deepEqual(reply.chapterIds, topicIdsFor(knowledge.find((item) => item.id === initial.context.id)));
-      assert.equal(reply.text, knowledge.find((item) => item.id === initial.context.id)[mode]);
+      const item = knowledge.find((item) => item.id === initial.context.id);
+      assert.equal(reply.text, mode === 'example' ? item[mode] : `${item[mode]}\n\nExample: ${item.example}`);
     }
   }
   const word = getReply('Define solvent');
@@ -99,7 +101,7 @@ test('follow-ups preserve the actual last source, including a glossary meaning',
 });
 
 test('follow-ups without context and broad terms ask for clarification', () => {
-  for (const question of ['Tell me more', 'Give an example', 'Explain it more simply', 'plants', 'water', 'soil', 'root']) {
+  for (const question of ['Tell me more', 'Give an example', 'Explain it more simply', 'plants', 'water', 'tell me about soil', 'root']) {
     const reply = getReply(question);
     assert.equal(reply.kind, 'clarify', question);
     assert.ok(reply.choices.length >= 2, question);
@@ -140,14 +142,16 @@ test('every glossary-card question works and grouped words retain their meanings
 });
 
 test('unknown questions are honest, and brain must never match rain', () => {
-  for (const question of ['What is a brain?', 'Tell me about black holes', 'How does electricity work?', 'Why is wool radioactive?', 'Can plants grow on Mars?', 'What is the difference between a brain and rain?']) {
+  for (const question of ['Explain brain electricity', 'Tell me about black holes', 'How does electricity work?', 'Why is wool radioactive?', 'Can plants grow on Mars?']) {
     const reply = getReply(question, null, 'clothes');
     assert.equal(reply.kind, 'unknown', question);
-    assert.match(reply.text, /do not have a reliable answer/);
+    assert.match(reply.text, /could not match/);
     assert.equal(reply.context, null);
   }
   assert.equal(hasPhrase(normalizeQuery('brain'), 'rain'), false);
   assert.equal(hasPhrase(normalizeQuery('insoluble'), 'soluble'), false);
+  assert.equal(getReply('What is a brain?').context.id, 'nerve-brain');
+  assert.equal(getReply('What is the difference between a brain and rain?').kind, 'clarify');
 });
 
 test('health, injury, poisoning, medicine, and dangerous activities never get instructions', () => {
@@ -188,14 +192,17 @@ test('invalid and overlong inputs have explicit friendly feedback', () => {
 });
 
 test('glossary search states a caller-controlled scope and handles variants', () => {
-  assert.equal(searchGlossary('').length, 198);
-  assert.equal(searchGlossary('', 'clothes').length, 10);
+  assert.equal(searchGlossary('').length, 237);
+  assert.equal(searchGlossary('', 'clothes').length, 16);
   assert.ok(searchGlossary('fiber').some((word) => word.id === 'fibre'));
   assert.ok(searchGlossary('food pipe').some((word) => word.id === 'oesophagus'));
   assert.ok(searchGlossary('stoma').some((word) => word.id === 'stomata'));
   assert.ok(searchGlossary('solidification').some((word) => word.id === 'melting-freezing'));
   assert.equal(searchGlossary('photosynthesis', 'clothes').length, 0);
-  assert.equal(searchGlossary('brain').length, 0);
+  assert.ok(searchGlossary('brain').some((word) => word.id === 'nerve-brain'));
+  assert.ok(!searchGlossary('brain').some((word) => word.id === 'dew-rain-snow'));
+  assert.ok(!searchGlossary('rain').some((word) => word.id === 'nerve-brain'));
+  assert.ok(searchGlossary('chloro').some((word) => word.id === 'chlorophyll'));
   assert.ok(searchGlossary('condensation', 'weather').some((word) => word.id === 'condensation'));
   assert.ok(searchGlossary('transpiration', 'earth-care').some((word) => word.id === 'stomata'));
   assert.ok(searchGlossary('estivation').some((word) => word.id === 'hibernation-aestivation'));

@@ -1,6 +1,7 @@
 import { lesson, part, word } from './content-helpers.js';
 import { additionalBroadTopics, additionalChapters, additionalComparisons, additionalGlossary, additionalKnowledge, sharedTopicLinks } from './extra-content.js';
 import { foodChapter, foodComparisons, foodGlossary, foodKnowledge, foodTopicLinks } from './food-content.js';
+import { enrichReviewedVocabulary, reviewedComparisons, reviewedLessons, reviewedWords } from './vocabulary.js';
 
 export const guide = {
   title: 'Science Exam Buddy',
@@ -195,14 +196,14 @@ export const chapters = [
     colour: 'sand',
     intro: 'Look below your feet: how soil forms, supports life, and needs protection.',
     summary: [
-      'Weathering slowly breaks rocks into smaller mineral particles. Soil is a mixture of these particles, humus from decayed living matter, air, and water. Soil formation is usually very slow; there is no one time that applies everywhere.',
+      'Pedogenesis means soil formation and development. Weathering supplies smaller rock particles, which mix with humus, air, and water as soil develops. It is usually slow; there is no one time that applies everywhere.',
       'Of sand, silt, and clay, sand particles are the largest, silt is in between, and clay particles are the smallest. Sandy soil feels rough and drains quickly. Clayey soil is sticky when wet and holds more water.',
       'Loamy soil mixes sand, silt, and clay and often has humus. It can hold useful water while letting extra water drain, so it supports many plants. The parts do not have to be present in equal amounts.',
       'In a simplified soil profile, topsoil is the upper layer, usually richer in humus. Subsoil below has less humus. Bedrock lies deeper down.',
       'Erosion is the removal of soil by wind or moving water. Clearing vegetation and heavy rain can increase it. Soil conservation includes protecting plant cover: roots help hold soil, and leaves and ground cover reduce the force of rain on it.',
     ],
     checklist: [
-      'Name the main things mixed together in soil.',
+      'Explain pedogenesis and name the main things mixed together in soil.',
       'Put sand, silt, and clay in order of particle size.',
       'Compare sandy, clayey, and loamy soil.',
       'Label topsoil, subsoil, and bedrock in a simple profile.',
@@ -215,8 +216,8 @@ export const chapters = [
       { title: 'Fallen leaves', text: 'As dead leaves decay, they add organic matter that contributes to humus. Observe with an adult; wash hands after touching soil.' },
     ],
     diagram: { title: 'A simple soil profile: top to bottom', steps: ['Topsoil: more humus', 'Subsoil: less humus', 'Bedrock: solid rock below'], note: 'Real soils vary. This simplified picture is useful for revision, not a claim that every place has identical layers.' },
-    memory: 'Weathering breaks. Erosion takes. Roots help soil stay.',
-    starters: ['soil-types', 'weathering-erosion', 'soil-protection'],
+    memory: 'Pedogenesis forms soil. Weathering breaks rock. Erosion carries material away.',
+    starters: ['pedogenesis', 'weathering-erosion', 'soil-protection'],
     mcqs: [
       { id: 'soil-q1', question: 'Which list puts these soil particles from largest to smallest?', options: ['Clay, silt, sand', 'Sand, silt, clay', 'Silt, sand, clay', 'Sand, clay, silt'], correct: 1, explanation: 'Sand particles are the largest of these three, silt is intermediate, and clay particles are the smallest.' },
       { id: 'soil-q2', question: 'What is humus?', options: ['Only large stones', 'A synthetic fibre', 'A gas made by leaves', 'Decayed organic matter in soil'], correct: 3, explanation: 'Humus comes from decayed living material such as fallen leaves. It helps improve soil and supply nutrients.' },
@@ -669,7 +670,7 @@ export const knowledge = [
   lesson('soil-formation', 'soil', 'How does soil form?',
     ['How does soil form?', 'What is soil made of?', 'What are the components of soil?', 'How do rocks turn into soil?'],
     ['soil', 'weathering', 'rocks', 'humus', 'minerals'],
-    'Weathering gradually breaks rocks into mineral particles. They mix with humus from decayed living material, air, and water to form soil. Soil formation is slow and its speed varies from place to place.',
+    'Soil formation is called pedogenesis. Weathering supplies rock particles that mix with humus, air, and water as soil develops. Weathering is one part of pedogenesis; erosion removes material instead. Soil formation is slow and varies from place to place.',
     'Broken-down rock plus decayed matter, air, and water make soil.',
     'Soil is not only dirt or crushed rock. Its air and water spaces help roots, and humus improves soil. There is no single number of years for making a layer of soil everywhere.',
     'Decayed leaves can add humus to soil in a garden.'),
@@ -883,10 +884,16 @@ export const broadTopics = [
 chapters.push(...additionalChapters);
 glossary.push(...additionalGlossary);
 glossary.push(...foodGlossary);
+glossary.push(...reviewedWords);
+enrichReviewedVocabulary(glossary);
 knowledge.push(...additionalKnowledge);
 knowledge.push(...foodKnowledge);
+knowledge.push(...reviewedLessons);
+knowledge.find((item) => item.id === 'soil-protection').relatedChapterIds = ['earth-care'];
+knowledge.find((item) => item.id === 'water-cycle').simple = 'The continuing water cycle moves water: evaporate, condense, fall, collect, then repeat.';
 comparisons.push(...additionalComparisons);
 comparisons.push(...foodComparisons);
+comparisons.push(...reviewedComparisons);
 broadTopics.push(...additionalBroadTopics);
 
 for (const [id, relatedChapterIds] of Object.entries(sharedTopicLinks)) {

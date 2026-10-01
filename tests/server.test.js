@@ -17,7 +17,7 @@ test('static app works at both root and Pages subpath without exposing other fil
       assert.match(html, /href="\.\/styles\.css"/);
       assert.match(html, /connect-src 'none'/);
     }
-    for (const path of ['/app.js', '/science-exam-buddy/content.js', '/science-exam-buddy/content-helpers.js', '/science-exam-buddy/extra-content.js', '/science-exam-buddy/food-content.js', '/science-exam-buddy/assets/buddy.svg']) {
+    for (const path of ['/app.js', '/science-exam-buddy/content.js', '/science-exam-buddy/content-helpers.js', '/science-exam-buddy/extra-content.js', '/science-exam-buddy/food-content.js', '/science-exam-buddy/vocabulary.js', '/science-exam-buddy/word-requests.js', '/science-exam-buddy/assets/buddy.svg']) {
       const response = await fetch(`${base}${path}`);
       assert.equal(response.status, 200);
       assert.ok(response.headers.get('content-type').includes(path.endsWith('.svg') ? 'image/svg+xml' : 'javascript'));

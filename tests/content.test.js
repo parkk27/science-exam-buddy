@@ -4,17 +4,17 @@ import { chapters, comparisons, DEFAULT_CHAPTER_ID, glossary, knowledge, stats, 
 import { normalizeQuery } from '../tutor.js';
 
 const expectedWords = {
-  food: 29, digestion: 22, clothes: 10, matter: 15, soil: 13, 'green-plants': 13, survival: 13,
-  circulation: 17, 'young-animals': 17, 'animal-adaptations': 36, forces: 20,
-  weather: 29, space: 18, 'earth-care': 23,
+  food: 31, digestion: 31, clothes: 16, matter: 18, soil: 21, 'green-plants': 19, survival: 19,
+  circulation: 20, 'young-animals': 21, 'animal-adaptations': 42, forces: 23,
+  weather: 34, space: 18, 'earth-care': 28,
 };
 
 test('Food is first, Digestion second, and all 14 topics have exact practice totals', () => {
   assert.deepEqual(chapters.map((item) => item.id), Object.keys(expectedWords));
   assert.equal(DEFAULT_CHAPTER_ID, 'food');
   assert.deepEqual(chapters.slice(1).map((chapter) => chapter.id), ['digestion', 'clothes', 'matter', 'soil', 'green-plants', 'survival', 'circulation', 'young-animals', 'animal-adaptations', 'forces', 'weather', 'space', 'earth-care']);
-  assert.deepEqual(stats, { topics: 14, glossaryCards: 198, mcqs: 84, shortAnswers: 56, tutorExplanations: 105, tutorQuestions: 443 });
-  assert.equal(comparisons.length, 81);
+  assert.deepEqual(stats, { topics: 14, glossaryCards: 237, mcqs: 84, shortAnswers: 56, tutorExplanations: 106, tutorQuestions: 447 });
+  assert.equal(comparisons.length, 83);
   const ids = new Set();
   for (const chapter of chapters) {
     assert.ok(chapter.summary.length >= 3);
@@ -47,8 +47,8 @@ test('Food is first, Digestion second, and all 14 topics have exact practice tot
   assert.equal(new Set(questions).size, questions.length, 'No duplicate practice questions');
 });
 
-test('198 unique glossary cards cover old and Food concepts without duplicate cards', () => {
-  assert.equal(glossary.length, 198);
+test('237 unique glossary cards cover old and reviewed concepts without duplicate cards', () => {
+  assert.equal(glossary.length, 237);
   assert.equal(new Set(glossary.map((word) => word.id)).size, glossary.length);
   const covered = new Set(glossary.flatMap((word) =>
     [word.term, ...word.aliases, ...word.parts.flatMap((part) => [part.term, ...part.aliases])]).map(normalizeQuery));
@@ -125,7 +125,7 @@ test('every starter, lesson, and comparison points to a real source', () => {
   }
   for (const comparison of comparisons) assert.ok(ids.has(comparison.lessonId));
   const questions = knowledge.flatMap((item) => item.questions.map(normalizeQuery));
-  assert.equal(new Set(questions).size, 443, 'Curated phrasings must not be duplicated');
+  assert.equal(new Set(questions).size, 447, 'Curated phrasings must not be duplicated');
 });
 
 test('scientific guardrails are stated explicitly in the original material', () => {
