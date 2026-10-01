@@ -1,6 +1,7 @@
-import { broadTopics, chapters, comparisons, glossary, knowledge } from './content.js';
+import { broadTopics, chapters, comparisons, DEFAULT_CHAPTER_ID, glossary, knowledge, topicIdsFor } from './content.js';
 
 export const MAX_QUESTION_LENGTH = 280;
+const phraseIndex = new Map();
 
 const replacements = [
   ['food pipe', 'oesophagus'], ['foodpipe', 'oesophagus'], ['esophagus', 'oesophagus'],
@@ -32,6 +33,32 @@ const replacements = [
   ['loam', 'loamy soil'], ['sunlight', 'light'], ['sunshine', 'light'],
   ['keep us warm', 'keep warm'], ['keep you warm', 'keep warm'],
   ['food factories', 'food factory'], ['food factorys', 'food factory'],
+  ['ureters', 'ureter'], ['urethar', 'urethra'], ['kidneys', 'kidney'],
+  ['arteries', 'artery'], ['veins', 'vein'], ['capillaries', 'capillary'],
+  ['blood vessels', 'blood vessel'], ['larvae', 'larva'], ['pupae', 'pupa'],
+  ['caterpillars', 'caterpillar'], ['tadpoles', 'tadpole'], ['spawns', 'spawn'],
+  ['molting', 'moulting'], ['molt', 'moulting'], ['moult', 'moulting'],
+  ['metamorfosis', 'metamorphosis'], ['metamorphisis', 'metamorphosis'],
+  ['estivation', 'aestivation'], ['camoflage', 'camouflage'],
+  ['vertebrates', 'vertebrate'], ['invertebrates', 'invertebrate'],
+  ['mammals', 'mammal'], ['birds', 'bird'], ['bats', 'bat'],
+  ['reptiles', 'reptile'], ['amphibians', 'amphibian'], ['gills', 'gill'], ['gils', 'gill'],
+  ['herbivores', 'herbivore'], ['carnivores', 'carnivore'], ['omnivores', 'omnivore'],
+  ['scavengers', 'scavenger'], ['parasites', 'parasite'],
+  ['forces', 'force'], ['machines', 'machine'], ['screws', 'screw'], ['wedges', 'wedge'],
+  ['wheels', 'wheel'], ['axles', 'axle'], ['friktion', 'friction'],
+  ['watercycle', 'water cycle'], ['ground water', 'groundwater'],
+  ['planets', 'planet'], ['stars', 'star'], ['moons', 'moon'], ['satellites', 'satellite'],
+  ['constellations', 'constellation'], ['galaxies', 'galaxy'], ['scorpio', 'scorpius'],
+  ['rotaton', 'rotation'], ['revoluton', 'revolution'],
+  ['hemispheres', 'hemisphere'], ['seasons', 'season'],
+  ['satelite', 'satellite'], ['galaxi', 'galaxy'], ['filration', 'filtration'],
+  ['carbohydrates', 'carbohydrate'], ['carbs', 'carbohydrate'], ['proteins', 'protein'],
+  ['fats', 'fat'], ['vitamins', 'vitamin'], ['minerals', 'mineral'],
+  ['roughdge', 'roughage'], ['balanced dite', 'balanced diet'], ['protien', 'protein'],
+  ['grams', 'gram'], ['kilograms', 'kilogram'], ['liters', 'litre'], ['liter', 'litre'],
+  ['litres', 'litre'], ['kiloliters', 'kilolitre'], ['kiloliter', 'kilolitre'], ['kilolitres', 'kilolitre'],
+  ['refrigerating', 'refrigeration'], ['preserving', 'preservation'],
 ].sort((a, b) => b[0].length - a[0].length);
 
 function plainWords(value) {
@@ -50,7 +77,7 @@ export function normalizeQuery(value) {
 }
 
 export function hasPhrase(query, phrase) {
-  const normalized = normalizeQuery(phrase);
+  const normalized = phraseIndex.get(phrase) ?? normalizeQuery(phrase);
   return normalized !== '' && ` ${query} `.includes(` ${normalized} `);
 }
 
@@ -145,9 +172,36 @@ const routes = [
 const lessonIndex = new Map(knowledge.map((item) => {
   const questions = item.questions.map(normalizeQuery);
   const subjects = item.subjects.map(normalizeQuery);
-  const vocabulary = new Set(terms(normalizeQuery(`${item.questions.join(' ')} ${item.subjects.join(' ')} ${intentTerms[item.id] || ''}`)));
+  const vocabulary = new Set(terms(normalizeQuery(`${item.questions.join(' ')} ${item.subjects.join(' ')} ${intentTerms[item.id] || ''} ${item.intentTerms || ''}`)));
   return [item.id, { item, questions, subjects, vocabulary }];
 }));
+
+const questionIndex = new Map();
+for (const prepared of lessonIndex.values()) {
+  for (const question of prepared.questions) {
+    if (questionIndex.has(question)) throw new Error(`Duplicate curated question: ${question}`);
+    questionIndex.set(question, prepared);
+  }
+}
+
+const glossaryIndex = new Map();
+const glossarySearchIndex = glossary.map((entry) => {
+  for (const item of entry.parts) {
+    for (const name of [item.term, ...item.aliases]) {
+      const key = normalizeQuery(name);
+      if (!glossaryIndex.has(key)) glossaryIndex.set(key, { entry, matchedPart: item });
+    }
+  }
+  const names = [entry.term, ...entry.aliases];
+  for (const name of names) {
+    const key = normalizeQuery(name);
+    if (!glossaryIndex.has(key)) glossaryIndex.set(key, { entry, matchedPart: null });
+  }
+  return { entry, names: [...names, ...entry.parts.flatMap((item) => [item.term, ...item.aliases])].map(normalizeQuery) };
+});
+
+const broadTopicIndex = new Map(broadTopics.flatMap((item) =>
+  item.phrases.map((phrase) => [normalizeQuery(phrase), item])));
 
 const easyMeanings = {
   digestion: 'Digestion breaks food into useful substances your body can take in.',
@@ -210,7 +264,7 @@ const easyMeanings = {
   'leaf-blade': 'The leaf blade is the broad, flat part of a leaf.',
   vein: 'Leaf veins carry water, minerals, and food.',
   chlorophyll: 'Chlorophyll is the green pigment that captures light energy.',
-  stomata: 'Stomata are tiny leaf openings for gases and water vapour.',
+  stomata: 'Stomata are tiny leaf openings. Losing water as vapour is transpiration.',
   photosynthesis: 'A green plant uses light, water, and carbon dioxide to make food and release oxygen.',
   'carbon-dioxide-oxygen': 'Plants use carbon dioxide to make food. They release oxygen, but also need oxygen to respire.',
   'glucose-starch': 'Glucose is food made by the plant. Starch stores extra food.',
@@ -262,7 +316,10 @@ function selectedStarters(chapterId) {
 
 function clarification(ids, message = 'That could mean a few things. Which one would you like to revise?', context = null) {
   const unique = [...new Set(ids)].slice(0, 4);
-  const chapterIds = unique.map((id) => lessonIndex.get(id)?.item.chapterId).filter(Boolean);
+  const chapterIds = unique.flatMap((id) => {
+    const item = lessonIndex.get(id)?.item;
+    return item ? topicIdsFor(item) : [];
+  });
   return result('clarify', 'Let’s choose a question', message, chapterIds, context, suggestions(unique));
 }
 
@@ -270,7 +327,7 @@ function lessonAnswer(id, mode = 'answer') {
   const item = lessonIndex.get(id).item;
   const text = mode === 'more' ? item.more : mode === 'example' ? item.example : mode === 'simple' ? item.simple : item.answer;
   const title = mode === 'more' ? `A little more: ${item.title}` : mode === 'example' ? `An example: ${item.title}` : mode === 'simple' ? `Simply: ${item.title}` : item.title;
-  return result('answer', title, text, [item.chapterId], { type: 'lesson', id });
+  return result('answer', title, text, topicIdsFor(item), { type: 'lesson', id });
 }
 
 function glossaryAnswer(entry, matchedPart, mode = 'answer') {
@@ -279,8 +336,8 @@ function glossaryAnswer(entry, matchedPart, mode = 'answer') {
   let text = definition;
   if (mode === 'more') text = `${definition}\n\n${matchedPart ? `${entry.definition}\n\n` : ''}Everyday connection: ${entry.example}`;
   if (mode === 'example') text = `${entry.example}\n\nRemember: ${definition}`;
-  if (mode === 'simple') text = matchedPart?.definition || easyMeanings[entry.id];
-  return result('answer', term, text, [entry.chapterId], {
+  if (mode === 'simple') text = matchedPart?.definition || entry.simple || easyMeanings[entry.id];
+  return result('answer', term, text, topicIdsFor(entry), {
     type: 'glossary',
     id: entry.id,
     part: matchedPart?.term || null,
@@ -296,6 +353,9 @@ const healthPhrases = [
   'treat', 'treatment', 'diagnose', 'diagnosis', 'cure', 'cancer', 'allergy', 'allergic',
   'burned', 'burnt', 'cough', 'coughing', 'sore', 'diarrhoea', 'diarrhea', 'nausea',
   'i feel unwell', 'i feel dizzy', 'cannot breathe', 'cant breathe',
+  'draw blood', 'take blood', 'blood sample at home', 'inject', 'injection',
+  'treat my', 'treat me', 'treat myself',
+  'underweight', 'overweight', 'weight loss', 'lose weight', 'too fat',
 ];
 const hazards = [
   'iodine', 'mothball', 'mothballs', 'alcohol', 'spirit', 'bleach', 'knife', 'knives',
@@ -307,20 +367,28 @@ const heatActions = ['heat', 'heating', 'boil', 'boiling', 'burn', 'burning', 'c
 const actionRequests = ['how', 'steps', 'experiment', 'try', 'can i', 'should i', 'do i', 'at home', 'make', 'test', 'use'];
 
 function safetyReply(query) {
-  if (healthPhrases.some((phrase) => hasPhrase(query, phrase))) {
+  const waterContext = hasPhrase(query, 'water') || hasPhrase(query, 'chlorination');
+  if (healthPhrases.some((phrase) => hasPhrase(query, phrase)
+    && !(waterContext && ['treat', 'treatment'].includes(phrase)))) {
     return result('safety', 'A trusted adult can help',
       'Please tell a trusted adult now about pain, illness, injury, medicine, or anything you may have swallowed. They can contact a doctor, dentist, poison service, or local emergency service if needed. Do not taste unknown substances or take medicine by yourself. I can explain revision topics, but I cannot diagnose or suggest treatment.');
   }
   const hazardous = hazards.some((phrase) => hasPhrase(query, phrase)) || hasPhrase(query, 'test starch');
+  const safeConcept = ['Is the Sun a ball of fire?', 'What is iodine in food?'].some((question) => query === normalizeQuery(question));
   const activityFraming = ['steps', 'experiment', 'try', 'at home', 'can i', 'should i', 'do i', 'how to', 'how do i', 'how can i', 'how do we', 'how can we'];
   const unsafeActivity = heatActions.some((phrase) => hasPhrase(query, phrase))
     && actionRequests.some((phrase) => hasPhrase(query, phrase))
     && (activityFraming.some((phrase) => hasPhrase(query, phrase))
       || ['heat water', 'heat salt', 'boil water', 'cut a', 'cut the', 'burn a', 'burn the'].some((phrase) => hasPhrase(query, phrase)));
-  const unsafeFood = ['eat mould', 'eat mouldy', 'taste mould', 'taste mouldy', 'grow mould', 'drink muddy', 'drink salt water'].some((phrase) => hasPhrase(query, phrase));
-  if (hazardous || unsafeActivity || unsafeFood) {
+  const unsafeFood = ['eat mould', 'eat mouldy', 'taste mould', 'taste mouldy', 'grow mould', 'drink muddy', 'drink salt water', 'eat spoiled', 'eat spoilt', 'taste spoiled', 'taste spoilt'].some((phrase) => hasPhrase(query, phrase));
+  const unsafeCooking = ['cook', 'fry', 'frying', 'pickling', 'canning', 'make pickles'].some((phrase) => hasPhrase(query, phrase))
+    && ['how do i', 'how can i', 'how to', 'steps', 'experiment', 'at home', 'can i'].some((phrase) => hasPhrase(query, phrase));
+  const unsafeObservation = ['look directly at the sun', 'look at the sun', 'look at sun', 'binoculars', 'use a telescope', 'catch a snake', 'touch a snake', 'feed wild animals', 'capture wild animals', 'how do i hunt', 'how to hunt', 'make an electrical circuit'].some((phrase) => hasPhrase(query, phrase));
+  const unsafeChemicals = ['chlorine', 'chlorination'].some((phrase) => hasPhrase(query, phrase))
+    && ['can i', 'how do i', 'how to', 'steps', 'experiment', 'add', 'dose', 'use at home'].some((phrase) => hasPhrase(query, phrase));
+  if ((hazardous && !safeConcept) || unsafeActivity || unsafeFood || unsafeCooking || unsafeObservation || unsafeChemicals) {
     return result('safety', 'Let’s keep revision safe',
-      'I cannot give steps for activities with heat, sharp tools, chemicals, or unsafe food. Ask a teacher or trusted adult instead, and never taste unknown mixtures or mouldy food. A starch test belongs with a trained adult. We can safely revise the idea without doing the experiment.',
+      'I cannot give steps for unsafe activities with heat, sharp tools, chemicals, electricity, or wildlife. Ask a teacher or trusted adult instead. Never taste unknown mixtures or mouldy food, or look directly at the Sun. A starch test belongs with a trained adult. We can revise the idea safely using explanations and drawings.',
       [], null, suggestions(['melting-freezing', 'plant-storage', 'filter-limits']));
   }
   return null;
@@ -358,14 +426,7 @@ function termRequest(query) {
 }
 
 function findWord(query) {
-  const target = termRequest(query);
-  for (const entry of glossary) {
-    for (const item of entry.parts) {
-      if ([item.term, ...item.aliases].some((name) => normalizeQuery(name) === target)) return { entry, matchedPart: item };
-    }
-    if ([entry.term, ...entry.aliases].some((name) => normalizeQuery(name) === target)) return { entry, matchedPart: null };
-  }
-  return null;
+  return glossaryIndex.get(termRequest(query)) || null;
 }
 
 function evidenceFor(prepared, queryTerms, query) {
@@ -386,7 +447,7 @@ function evidenceFor(prepared, queryTerms, query) {
   return { id: prepared.item.id, score: coverage * 0.6 + similarity * 0.2 + specificity * 0.04 + (routed ? 0.25 : 0) };
 }
 
-export function getReply(value, context = null, selectedChapterId = 'digestion') {
+export function getReply(value, context = null, selectedChapterId = DEFAULT_CHAPTER_ID) {
   const validated = validateQuestion(value);
   if (!validated.valid) return result('invalid', 'A small nudge', validated.message);
   const query = normalizeQuery(validated.value);
@@ -396,7 +457,7 @@ export function getReply(value, context = null, selectedChapterId = 'digestion')
 
   if (['hi', 'hello', 'hey', 'hi buddy', 'hello buddy', 'good morning', 'good evening', 'how are you'].includes(query)) {
     return result('greeting', 'Hello, revision explorer!',
-      'I answer from this small science guide, not an AI service. Pick a starter question or ask about one of the six topics. You do not need to share your name or any personal details.',
+      'I answer from this small science guide, not an AI service. Pick a starter question or ask about one of the supplied topics. You do not need to share your name or any personal details.',
       [], lastContext, suggestions(selectedStarters(selectedChapterId)));
   }
   if (['thanks', 'thank you', 'thank you buddy'].includes(query)) {
@@ -411,24 +472,30 @@ export function getReply(value, context = null, selectedChapterId = 'digestion')
       'I need a topic first. Choose a question below, then I can explain more, make it simpler, or give an example.');
   }
 
-  const broad = broadTopics.find((item) => item.phrases.some((phrase) => normalizeQuery(phrase) === query));
+  const broad = broadTopicIndex.get(query);
   if (broad) return clarification(broad.lessonIds, undefined, lastContext);
-  if (['root', 'roots', 'what is a root', 'what is root'].some((phrase) => normalizeQuery(phrase) === query)) {
+  const requestedTerm = termRequest(query);
+  if (requestedTerm === 'root') {
     return clarification(['tooth-layers', 'photosynthesis', 'soil-protection'], 'Do you mean a tooth’s root, or a plant’s roots? Choose the idea you want.', lastContext);
+  }
+  if (requestedTerm === 'vein') {
+    return clarification(['leaf-parts', 'blood-vessels'], '“Vein” can mean a leaf pathway or a blood vessel. Which meaning do you want?', lastContext);
+  }
+  if (requestedTerm === 'pulp') {
+    return clarification(['tooth-layers', 'earth-care-actions'], 'Do you mean the inside of a tooth, or the plant-fibre mixture used for paper?', lastContext);
+  }
+  if (requestedTerm === 'fibre') {
+    return clarification(['food-fibre-water', 'fibre-sources'], 'Do you mean dietary fibre in food, or the fibres used for clothing?', lastContext);
+  }
+  if (requestedTerm === 'mineral') {
+    return clarification(['food-vitamins-minerals', 'soil-formation'], 'Do you mean mineral nutrients in food, or minerals in rocks and soil?', lastContext);
   }
 
   const mode = requestedMode(query);
-  const exact = [...lessonIndex.values()].find((prepared) => prepared.questions.includes(query));
+  const exact = questionIndex.get(query);
   if (exact) return lessonAnswer(exact.item.id, mode);
 
   const queryTerms = terms(query);
-  const comparison = comparisons.find((item) => item.groups.every((group) => group.some((phrase) => hasPhrase(query, phrase))));
-  if (comparison) {
-    const prepared = lessonIndex.get(comparison.lessonId);
-    if (queryTerms.length && queryTerms.filter((token) => prepared.vocabulary.has(token)).length / queryTerms.length >= 0.78) {
-      return lessonAnswer(comparison.lessonId, mode);
-    }
-  }
   const wantsComparison = ['difference', 'compare', 'versus', 'vs', 'different'].some((phrase) => hasPhrase(query, phrase));
   if (!wantsComparison) {
     const match = findWord(query);
@@ -437,7 +504,14 @@ export function getReply(value, context = null, selectedChapterId = 'digestion')
       return glossaryAnswer(match.entry, match.matchedPart, mode);
     }
   }
-
+  const comparison = comparisons.find((item) => {
+    const prepared = lessonIndex.get(item.lessonId);
+    return item.groups.every((group) => group.some((phrase) => hasPhrase(query, phrase)))
+      && queryTerms.length && queryTerms.filter((token) => prepared.vocabulary.has(token)).length / queryTerms.length >= 0.78;
+  });
+  if (comparison) {
+    return lessonAnswer(comparison.lessonId, mode);
+  }
   const candidates = [...lessonIndex.values()]
     .map((prepared) => evidenceFor(prepared, queryTerms, query))
     .filter(Boolean).sort((a, b) => b.score - a.score);
@@ -451,16 +525,40 @@ export function getReply(value, context = null, selectedChapterId = 'digestion')
     return lessonAnswer(top.id, mode);
   }
   return result('unknown', 'That is outside this little guide',
-    'I do not have a reliable answer for that in this revision guide. I only cover the six science topics shown here, and I will not make up an answer. Check your textbook or ask a teacher or trusted adult. You can try one of these on-topic questions instead.',
+    'I do not have a reliable answer for that in this revision guide. I cover only the supplied science topics shown here, and I will not make up an answer. Check your textbook or ask a teacher or trusted adult. You can try one of these on-topic questions instead.',
     [], lastContext, suggestions(selectedStarters(selectedChapterId)));
 }
 
 export function searchGlossary(value, chapterId = null) {
   const query = normalizeQuery(value);
-  return glossary.filter((entry) => {
-    if (chapterId && entry.chapterId !== chapterId) return false;
+  return glossarySearchIndex.filter(({ entry, names }) => {
+    if (chapterId && !topicIdsFor(entry).includes(chapterId)) return false;
     if (!query) return true;
-    const names = [entry.term, ...entry.aliases, ...entry.parts.flatMap((item) => [item.term, ...item.aliases])];
-    return names.some((name) => normalizeQuery(name).includes(query));
-  }).sort((a, b) => a.term.localeCompare(b.term, 'en'));
+    return names.some((name) => name.includes(query));
+  }).map(({ entry }) => entry).sort((a, b) => a.term.localeCompare(b.term, 'en'));
+}
+
+// Index only fixed guide phrases, never children's questions or chat history.
+const fixedPhrases = [
+  ...healthPhrases, ...hazards, ...heatActions, ...actionRequests,
+  ...routes.flatMap((item) => [...item.groups.flat(), ...(item.unless || [])]),
+  ...comparisons.flatMap((item) => item.groups.flat()),
+  ...knowledge.flatMap((item) => item.subjects),
+  'example', 'examples', 'simply', 'simpler', 'simple words', 'more', 'test starch',
+  'steps', 'experiment', 'try', 'at home', 'can i', 'should i', 'do i', 'how to',
+  'how do i', 'how can i', 'how do we', 'how can we', 'heat water', 'heat salt',
+  'boil water', 'cut a', 'cut the', 'burn a', 'burn the', 'eat mould', 'eat mouldy',
+  'taste mould', 'taste mouldy', 'grow mould', 'drink muddy', 'drink salt water',
+  'look directly at the sun', 'look at the sun', 'look at sun', 'binoculars',
+  'use a telescope', 'catch a snake', 'touch a snake', 'feed wild animals',
+  'capture wild animals', 'how to hunt', 'how do i hunt', 'make an electrical circuit',
+  'chlorine', 'chlorination', 'add', 'dose', 'use at home',
+  'difference', 'compare', 'versus', 'vs', 'different', 'carbon dioxide',
+  'cook', 'fry', 'frying', 'pickling', 'canning', 'make pickles',
+  'eat spoiled', 'eat spoilt', 'taste spoiled', 'taste spoilt',
+];
+for (const phrase of fixedPhrases) {
+  const normalized = normalizeQuery(phrase);
+  phraseIndex.set(phrase, normalized);
+  phraseIndex.set(normalized, normalized);
 }

@@ -1,4 +1,4 @@
-import { chapters, glossary, knowledge } from './content.js';
+import { chapters, DEFAULT_CHAPTER_ID, glossary, guide, knowledge, stats, topicIdsFor, wordCountForTopic } from './content.js';
 import { appendChatMessage, element, icon } from './dom.js';
 import { getReply, MAX_QUESTION_LENGTH, searchGlossary, validateQuestion } from './tutor.js';
 
@@ -6,7 +6,7 @@ const byId = (id) => document.getElementById(id);
 const MAX_CHAT_MESSAGES = 24;
 const tabs = ['summary', 'glossary', 'practice', 'chat'];
 const state = {
-  chapterId: chapters[0].id,
+  chapterId: DEFAULT_CHAPTER_ID,
   tab: 'summary',
   questionIndex: Object.fromEntries(chapters.map((chapter) => [chapter.id, 0])),
   quizAnswers: new Map(),
@@ -18,7 +18,7 @@ function currentChapter() {
 }
 
 function chapterLabel(chapterId) {
-  return chapters.find((chapter) => chapter.id === chapterId)?.fullTitle || 'Six-topic revision guide';
+  return chapters.find((chapter) => chapter.id === chapterId)?.fullTitle || `${stats.topics}-topic revision guide`;
 }
 
 function lastTopicLabel() {
@@ -63,14 +63,14 @@ function setChapter(chapterId) {
   const chapter = currentChapter();
   byId('chapter-select').value = chapterId;
   for (const button of document.querySelectorAll('[data-chapter]')) button.setAttribute('aria-pressed', String(button.dataset.chapter === chapterId));
-  byId('chapter-number').textContent = `Topic ${String(chapters.indexOf(chapter) + 1).padStart(2, '0')} of 06`;
+  byId('chapter-number').textContent = `Topic ${String(chapters.indexOf(chapter) + 1).padStart(2, '0')} of ${String(stats.topics).padStart(2, '0')}`;
   byId('chapter-title').textContent = chapter.title;
   byId('chapter-intro').textContent = chapter.intro;
   byId('chapter-art').setAttribute('data-colour', chapter.colour);
   byId('chapter-art').replaceChildren(icon(chapter.icon));
-  const wordCount = glossary.filter((word) => word.chapterId === chapterId).length;
+  const wordCount = wordCountForTopic(chapterId);
   byId('glossary-scope').options[0].textContent = `This topic (${wordCount} cards)`;
-  byId('glossary-scope').options[1].textContent = 'All six topics (80 cards)';
+  byId('glossary-scope').options[1].textContent = `All ${stats.topics} topics (${stats.glossaryCards} cards)`;
   renderSummary();
   renderGlossary();
   renderPractice();
@@ -97,11 +97,12 @@ function renderSummary() {
     element('div', {}, element('p', { className: 'eyebrow', text: 'The big ideas, in small steps' }), element('h3', { text: 'In a nutshell' })),
     element('span', { className: 'soft-badge', text: 'Quick guide' }));
   const summary = element('ol', { className: 'summary-list' }, chapter.summary.map((text) => element('li', {}, element('span', { text }))));
-  const diagram = element('figure', { className: 'diagram' },
-    element('h4', { text: chapter.diagram.title }),
-    element('ol', { className: 'diagram-steps', 'aria-label': chapter.diagram.title },
-      chapter.diagram.steps.map((text) => element('li', {}, element('span', { text })))),
-    element('figcaption', { className: 'diagram-note', text: chapter.diagram.note }));
+  const diagrams = [chapter.diagram, ...(chapter.extraDiagrams || [])].map((diagram) =>
+    element('figure', { className: 'diagram' },
+      element('h4', { text: diagram.title }),
+      element('ol', { className: 'diagram-steps', 'aria-label': diagram.title },
+        diagram.steps.map((text) => element('li', {}, element('span', { text })))),
+      element('figcaption', { className: 'diagram-note', text: diagram.note })));
   const memory = element('div', { className: 'memory-note' },
     element('strong', { text: 'One thing to remember' }), chapter.memory);
   const checklist = element('ul', { className: 'checklist' }, chapter.checklist.map((text) => element('li', { text })));
@@ -111,7 +112,7 @@ function renderSummary() {
     element('h4', { text: 'A question to think about' }),
     element('div', { className: 'question-chips' }, questionButtons(starterChoices(chapter))),
     element('button', { type: 'button', className: 'button summary-practice', 'data-open-tab': 'practice', text: 'Ready? Try some practice →' }));
-  root.replaceChildren(heading, summary, diagram, memory,
+  root.replaceChildren(heading, summary, ...diagrams, memory,
     element('h3', { className: 'subheading', text: 'My exam checklist' }), checklist,
     element('h3', { className: 'subheading', text: 'Science in everyday life' }), examples, bottom);
 }
@@ -121,28 +122,37 @@ function renderGlossary() {
   const allTopics = byId('glossary-scope').value === 'all';
   const chapter = currentChapter();
   const matches = searchGlossary(query, allTopics ? null : chapter.id);
-  const scope = allTopics ? 'all six topics' : chapter.title;
+  const scope = allTopics ? `all ${stats.topics} topics` : chapter.title;
   byId('glossary-status').textContent = `${matches.length} ${matches.length === 1 ? 'word card' : 'word cards'} ${query.trim() ? 'matching your search' : 'shown'} · Scope: ${scope}.`;
   const results = byId('glossary-results');
   results.scrollTop = 0;
   if (!matches.length) {
     const empty = element('div', { className: 'empty-state' },
       element('h4', { text: 'No word cards here yet' }),
-      element('p', { text: allTopics ? 'Try another spelling, a shorter word, or clear your search. This guide covers only the six topics listed.' : 'Try another spelling, clear the search, or look across all six topics.' }));
+      element('p', { text: allTopics ? 'Try another spelling, a shorter word, or clear your search. This guide covers only the supplied topics listed.' : `Try another spelling, clear the search, or look across all ${stats.topics} topics.` }));
     if (!allTopics) {
-      const button = element('button', { type: 'button', className: 'button', text: 'Search all six topics' });
+      const button = element('button', { type: 'button', className: 'button', text: `Search all ${stats.topics} topics` });
       button.addEventListener('click', () => { byId('glossary-scope').value = 'all'; renderGlossary(); });
       empty.append(button);
     }
     results.replaceChildren(empty);
     return;
   }
-  results.replaceChildren(...matches.map((word) => element('article', { className: 'word-card', 'data-word-id': word.id },
-    element('div', { className: 'word-card-heading' },
-      element('h4', { text: word.term }), element('span', { className: 'source-label', text: chapterLabel(word.chapterId) })),
-    element('p', { className: 'word-definition', text: word.definition }),
-    element('p', { className: 'word-example', text: `Everyday connection: ${word.example}` }),
-    element('button', { type: 'button', className: 'button button-quiet', text: word.parts.length ? 'Ask Buddy about these words ↗' : 'Ask Buddy about this word ↗', 'data-question': `Explain ${word.term}` }))));
+  results.replaceChildren(...matches.map((word) => {
+    const meanings = word.parts.length ? element('details', { className: 'word-meanings' },
+      element('summary', { text: 'Compare the related word meanings' }),
+      element('dl', {}, word.parts.flatMap((part) => [
+        element('dt', { text: part.term }), element('dd', { text: part.definition }),
+      ]))) : null;
+    return element('article', { className: 'word-card', 'data-word-id': word.id },
+      element('div', { className: 'word-card-heading' }, element('h4', { text: word.term }),
+        element('div', { className: 'word-source-labels' }, topicIdsFor(word).map((id) =>
+          element('span', { className: 'source-label', text: chapterLabel(id) })))),
+      element('p', { className: 'word-definition', text: word.definition }),
+      element('p', { className: 'word-example', text: `Everyday connection: ${word.example}` }),
+      meanings,
+      element('button', { type: 'button', className: 'button button-quiet', text: word.parts.length ? 'Ask Buddy about these words ↗' : 'Ask Buddy about this word ↗', 'data-question': `Explain ${word.term}` }));
+  }));
 }
 
 function renderPractice() {
@@ -212,8 +222,10 @@ function renderPractice() {
 
 function renderStarters() {
   const chapter = currentChapter();
+  const choices = starterChoices(chapter);
   byId('starter-topic').textContent = chapter.title;
-  byId('chat-starters').replaceChildren(...questionButtons(starterChoices(chapter)));
+  byId('chat-starters').replaceChildren(...questionButtons(choices));
+  byId('chat-input').placeholder = `Try: ${choices[0].question}`;
 }
 
 function trimChat() {
@@ -237,7 +249,7 @@ function sendQuestion(question) {
   const reply = getReply(validation.value, state.context, state.chapterId);
   state.context = reply.context;
   const sources = reply.chapterIds.length ? reply.chapterIds.map(chapterLabel)
-    : [reply.kind === 'safety' ? 'Safety first · ask a trusted adult' : 'Six-topic revision guide'];
+    : [reply.kind === 'safety' ? 'Safety first · ask a trusted adult' : `${stats.topics}-topic revision guide`];
   appendChatMessage(byId('chat-log'), 'buddy', reply.title, reply.text, sources, reply.choices);
   trimChat();
   byId('chat-context').textContent = state.context
@@ -252,7 +264,7 @@ function clearChat(announce = false) {
   byId('chat-log').replaceChildren();
   appendChatMessage(byId('chat-log'), 'buddy', 'Hello! Let’s make revision feel smaller.',
     'Choose a starter question, or ask a science word from this guide. I can explain a topic, give an example, or help with a difference. If I am not sure, I will say so.',
-    ['Six-topic revision guide']);
+    [`${stats.topics}-topic revision guide`]);
   byId('chat-input').value = '';
   byId('chat-input').removeAttribute('aria-invalid');
   byId('chat-error').textContent = '';
@@ -264,6 +276,10 @@ function clearChat(announce = false) {
   }
 }
 
+byId('topic-count').textContent = `${stats.topics} guides`;
+byId('glossary-total').textContent = `${stats.glossaryCards} word cards`;
+byId('scope-footer').textContent = `${stats.topics} supplied topic guides. Small steps. Your book and teacher come first.`;
+byId('coverage-detail').textContent = `${guide.scope} This unofficial supplement covers ${chapters.map((chapter) => chapter.fullTitle).join('; ')}. Some scan edges and exercises are incomplete; no missing material is reconstructed. “Clothes and fibres” is a descriptive label.`;
 renderPicker();
 setChapter(state.chapterId);
 clearChat();

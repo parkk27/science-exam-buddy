@@ -1,12 +1,17 @@
+import { lesson, part, word } from './content-helpers.js';
+import { additionalBroadTopics, additionalChapters, additionalComparisons, additionalGlossary, additionalKnowledge, sharedTopicLinks } from './extra-content.js';
+import { foodChapter, foodComparisons, foodGlossary, foodKnowledge, foodTopicLinks } from './food-content.js';
+
 export const guide = {
   title: 'Science Exam Buddy',
   level: 'Class 4',
-  scope: 'Six revision topics, not the whole textbook.',
+  scope: 'Revision topics from supplied pages, not the whole textbook.',
   reference: 'New Science in Everyday Life, Oxford University Press, by Vaishali Gupta and Anuradha Gupta',
   notice: "Use this little guide alongside your textbook and your teacher's notes. Follow their wording for your exam.",
 };
 
 export const chapters = [
+  foodChapter,
   {
     id: 'digestion',
     title: 'Digestion & microbes',
@@ -322,14 +327,6 @@ export const chapters = [
   },
 ];
 
-function word(id, chapterId, term, definition, example, aliases = [], parts = []) {
-  return { id, chapterId, term, definition, example, aliases, parts };
-}
-
-function part(term, definition, aliases = []) {
-  return { term, definition, aliases };
-}
-
 // Closely related terms share a card, but each has its own searchable meaning.
 export const glossary = [
   word('digestion', 'digestion', 'Digestion', 'The process of breaking food down into smaller substances that the body can absorb and use.', 'Chewed food is broken down further in the stomach and small intestine.'),
@@ -359,7 +356,7 @@ export const glossary = [
     part('Enamel', 'The very hard outer covering of the tooth’s crown, which helps protect it.'),
     part('Dentine', 'The tooth layer beneath the enamel and around the pulp.', ['dentin']),
   ]),
-  word('pulp', 'digestion', 'Pulp', 'The inner part of a tooth containing nerves and blood vessels.', 'A tooth has living tissue inside, not just a hard outside.', ['tooth pulp']),
+  word('pulp', 'digestion', 'Tooth pulp', 'The inner part of a tooth containing nerves and blood vessels.', 'A tooth has living tissue inside, not just a hard outside.', ['pulp']),
   word('plaque', 'digestion', 'Plaque', 'A sticky film of bacteria and food remains on teeth. Bacteria in it can use sugar to make damaging acids.', 'Brushing twice daily helps remove plaque.'),
   word('microbes', 'digestion', 'Microbes', 'Very tiny organisms or infectious agents, usually studied with microscopes. Many help us; some cause disease.', 'Curd-making bacteria are useful microbes.', ['microbe', 'microorganism', 'microorganisms', 'germs', 'germ']),
   word('microscope', 'digestion', 'Microscope', 'An instrument that magnifies things too small to see clearly with our eyes.', 'A scientist uses a microscope to study tiny bacteria.'),
@@ -368,7 +365,7 @@ export const glossary = [
   word('protozoa', 'digestion', 'Protozoa', 'Tiny single-celled organisms; some live in water, and some can cause disease.', 'An amoeba is an example of a protozoan.', ['protozoan', 'amoeba']),
   word('virus', 'digestion', 'Virus', 'A tiny infectious agent that can multiply only inside living cells. It is not an independent living organism.', 'Viruses are different from bacteria.', ['viruses']),
 
-  word('fibre', 'clothes', 'Fibre', 'A thin strand used to make yarn, thread, or fabrics.', 'Cotton fibres can be made into yarn.', ['fiber', 'fibres', 'fibers']),
+  word('fibre', 'clothes', 'Clothing fibre', 'A thin strand used to make yarn, thread, or fabrics. Dietary fibre in food is a different meaning.', 'Cotton fibres can be made into yarn, not used as food roughage.', ['fibre', 'fiber', 'fibres', 'fibers', 'clothing fiber']),
   word('yarn-fabric', 'clothes', 'Yarn & fabric', 'Yarn is a long strand made from fibres. Fabric is material made from yarns or fibres, used for clothes and other things.', 'A sweater is knitted from yarn to make a fabric.', ['thread', 'cloth'], [
     part('Yarn', 'A long strand made from fibres, used in weaving or knitting.', ['thread']),
     part('Fabric', 'Cloth made from fibres or yarns, used for clothing and other items.', ['cloth']),
@@ -437,9 +434,12 @@ export const glossary = [
   word('conservation', 'soil', 'Conservation', 'Protecting and caring for a resource. Soil conservation helps prevent soil being lost or damaged.', 'Keeping suitable plant cover helps conserve soil.', ['soil conservation', 'conserve']),
 
   word('leaf-blade', 'green-plants', 'Leaf blade', 'The broad, flat part of a leaf that receives light.', 'A broad leaf blade can catch light for photosynthesis.', ['lamina']),
-  word('vein', 'green-plants', 'Vein', 'A transport pathway in a leaf that carries water, minerals, and food. Leaves have a main vein and side veins.', 'Look at the branching lines on a fallen leaf with an adult.', ['veins', 'main vein', 'side veins', 'midrib']),
+  word('vein', 'green-plants', 'Leaf vein', 'A transport pathway in a leaf that carries water, minerals, and food. Leaves have a main vein and side veins; these are not blood vessels.', 'Look at the branching lines on a fallen leaf with an adult.', ['vein', 'veins', 'leaf veins', 'main vein', 'side veins', 'midrib']),
   word('chlorophyll', 'green-plants', 'Chlorophyll', 'The green pigment in plants that captures light energy for photosynthesis.', 'Chlorophyll gives many leaves their green colour.', ['clorophyll', 'chlorophyl']),
-  word('stomata', 'green-plants', 'Stomata', 'Tiny openings, often on the underside of leaves, for gas exchange and water vapour release. One opening is a stoma.', 'Carbon dioxide can enter a leaf through stomata.', ['stoma', 'stomatas']),
+  word('stomata', 'green-plants', 'Stomata & transpiration', 'Stomata are tiny openings for gas exchange and water vapour release. Water loss as vapour from plants is called transpiration.', 'Leaf water-vapour release can help cool surroundings.', ['stomata', 'stoma', 'stomatas'], [
+    part('Stomata', 'Tiny openings, often on the underside of leaves, for gas exchange and water vapour release. One is a stoma.', ['stoma', 'stomatas']),
+    part('Transpiration', 'Loss of water as vapour from a plant, usually through its stomata.'),
+  ]),
   word('photosynthesis', 'green-plants', 'Photosynthesis', 'The process in which green plants use light energy, water, and carbon dioxide to make glucose, releasing oxygen.', 'A green plant makes its food rather than taking ready-made food from the soil.', ['photosyntesis', 'photosynthesise', 'photosynthesize']),
   word('carbon-dioxide-oxygen', 'green-plants', 'Carbon dioxide & oxygen', 'Carbon dioxide is used in photosynthesis. Oxygen is released in photosynthesis and used in respiration by plants and animals.', 'Plants and animals both need oxygen for respiration.', ['co2', 'o2'], [
     part('Carbon dioxide', 'A gas in air that plants use to make food during photosynthesis.', ['co2']),
@@ -459,8 +459,8 @@ export const glossary = [
     part('Habitat', 'The natural home environment of a living thing.', ['habitats']),
   ]),
   word('terrestrial-aquatic', 'survival', 'Terrestrial & aquatic', 'Terrestrial means living on land. Aquatic means living in water.', 'A pine is terrestrial; a lotus is aquatic.', ['land plants', 'water plants'], [
-    part('Terrestrial', 'Living on land. Neem and pine are examples of terrestrial plants.', ['terrestrial plant']),
-    part('Aquatic', 'Living in water. Duckweed and lotus are examples of aquatic plants.', ['aquatic plant']),
+    part('Terrestrial', 'Living on land. Pine plants and goats are examples.', ['terrestrial plant', 'terrestrial animal']),
+    part('Aquatic', 'Living in water. Lotus plants and fish are examples.', ['aquatic plant', 'aquatic animal']),
   ]),
   word('evergreen-deciduous', 'survival', 'Evergreen & deciduous', 'Evergreen plants keep leaves through most or all of the year. Deciduous plants shed leaves in a season.', 'Pine is an evergreen example; teak is generally deciduous.', [], [
     part('Evergreen', 'Keeping foliage through most or all of the year, although individual leaves are still replaced.'),
@@ -479,10 +479,6 @@ export const glossary = [
   ]),
   word('coir', 'survival', 'Coir', 'A tough natural fibre from the outer husk of a coconut.', 'Coir is used for mats and ropes.', ['coconut fibre', 'coconut fiber']),
 ];
-
-function lesson(id, chapterId, title, questions, subjects, answer, simple, more, example) {
-  return { id, chapterId, title, questions, subjects, answer, simple, more, example };
-}
 
 export const knowledge = [
   lesson('teeth-jobs', 'digestion', 'What do the different teeth do?',
@@ -766,7 +762,7 @@ export const knowledge = [
   lesson('habitat-adaptation', 'survival', 'What are habitats and adaptations?',
     ['What are habitats and adaptations?', 'What is the difference between habitat and adaptation?', 'How do plants adapt to their habitat?', 'What are terrestrial and aquatic plants?'],
     ['habitat', 'adaptation', 'terrestrial', 'aquatic', 'land plants', 'water plants'],
-    'A habitat is a living thing’s home environment. An adaptation is a feature that helps it survive there. Terrestrial plants live on land; aquatic plants live in water.',
+    'A habitat is a living thing’s home environment. An adaptation is a feature that helps it survive there. Terrestrial means living on land; aquatic means living in water. The words can describe both plants and animals.',
     'Habitat means home environment. Adaptation means a helpful feature for living there.',
     'A feature makes sense when you link it to a challenge in that habitat, such as little water in a desert or waterlogged soil in a swamp.',
     'A cactus’s water-storing stem helps it in a desert. A lotus’s long stems help its leaves reach the water surface.'),
@@ -873,12 +869,53 @@ export const comparisons = [
 
 export const broadTopics = [
   { phrases: ['plants', 'plant', 'green plants', 'tell me about plants'], lessonIds: ['photosynthesis', 'plant-respiration', 'cactus-survival', 'aquatic-types'] },
-  { phrases: ['water', 'tell me about water'], lessonIds: ['evaporation-condensation', 'dissolving', 'aquatic-types'] },
+  { phrases: ['water', 'tell me about water'], lessonIds: ['food-fibre-water', 'water-cycle', 'dissolving', 'safe-water'] },
   { phrases: ['teeth', 'tooth', 'tell me about teeth'], lessonIds: ['teeth-jobs', 'tooth-numbers', 'tooth-layers', 'tooth-care'] },
   { phrases: ['soil', 'tell me about soil'], lessonIds: ['soil-formation', 'soil-types', 'weathering-erosion', 'soil-protection'] },
-  { phrases: ['clothes', 'fibres', 'fibre', 'tell me about clothes'], lessonIds: ['fibre-sources', 'wool-warmth', 'summer-clothes', 'clothes-care'] },
+  { phrases: ['clothes', 'tell me about clothes'], lessonIds: ['fibre-sources', 'wool-warmth', 'summer-clothes', 'clothes-care'] },
   { phrases: ['matter', 'states of matter', 'tell me about matter'], lessonIds: ['matter-states', 'melting-freezing', 'filter-limits'] },
   { phrases: ['digestion', 'tell me about digestion'], lessonIds: ['food-journey', 'teeth-jobs', 'intestine-difference'] },
   { phrases: ['microbes', 'tell me about microbes'], lessonIds: ['useful-microbes', 'microbe-groups', 'tooth-care'] },
-  { phrases: ['air', 'tell me about air'], lessonIds: ['fluids-air', 'plant-respiration', 'stomata-jobs'] },
+  { phrases: ['air', 'tell me about air'], lessonIds: ['fluids-air', 'changing-weather', 'coastal-breezes', 'clouds-and-humidity'] },
+  { phrases: ['food', 'nutrition', 'tell me about food'], lessonIds: ['food-needs', 'food-balanced', 'food-preservation', 'food-healthy-routines'] },
 ];
+
+chapters.push(...additionalChapters);
+glossary.push(...additionalGlossary);
+glossary.push(...foodGlossary);
+knowledge.push(...additionalKnowledge);
+knowledge.push(...foodKnowledge);
+comparisons.push(...additionalComparisons);
+comparisons.push(...foodComparisons);
+broadTopics.push(...additionalBroadTopics);
+
+for (const [id, relatedChapterIds] of Object.entries(sharedTopicLinks)) {
+  const entry = glossary.find((item) => item.id === id);
+  if (!entry) throw new Error(`Unknown shared glossary card: ${id}`);
+  entry.relatedChapterIds = relatedChapterIds;
+}
+
+for (const [id, relatedChapterIds] of Object.entries(foodTopicLinks)) {
+  const entry = glossary.find((item) => item.id === id);
+  if (!entry) throw new Error(`Unknown Food glossary link: ${id}`);
+  entry.relatedChapterIds = [...new Set([...(entry.relatedChapterIds || []), ...relatedChapterIds])];
+}
+
+export const DEFAULT_CHAPTER_ID = chapters[0].id;
+
+export function topicIdsFor(item) {
+  return [...new Set([item.chapterId, ...(item.relatedChapterIds || [])])];
+}
+
+export function wordCountForTopic(chapterId) {
+  return glossary.filter((item) => topicIdsFor(item).includes(chapterId)).length;
+}
+
+export const stats = Object.freeze({
+  topics: chapters.length,
+  glossaryCards: glossary.length,
+  mcqs: chapters.reduce((total, chapter) => total + chapter.mcqs.length, 0),
+  shortAnswers: chapters.reduce((total, chapter) => total + chapter.shortAnswers.length, 0),
+  tutorExplanations: knowledge.length,
+  tutorQuestions: knowledge.reduce((total, item) => total + item.questions.length, 0),
+});
